@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v40-steppers-midnight-logo";
+const CACHE = "ember-violet-v41-midnight-cleanup";
 const SHELL = [
   "./",
   "./index.html",
@@ -10,7 +10,7 @@ const SHELL = [
   "./theme-background-terracotta.webp",
   "./theme-background-green.webp",
   "./theme-background-violet.webp",
-  "./theme-background-midnight.svg"
+  "./theme-background-midnight.webp"
 ];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
