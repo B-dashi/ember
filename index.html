@@ -122,7 +122,12 @@
 
         <button class="settings-tile" id="designTile" type="button">
           <span class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2"/><circle cx="15.5" cy="7" r="1.6"/><circle cx="7" cy="15" r="1.6"/><path d="M12 4a8 8 0 1 0 0 16c1.2 0 2-.7 2-1.6 0-.7-.5-1.2-.5-1.8 0-1.1.9-1.8 2-1.8h1.2c1.9 0 3.3-1.4 3.3-3.5A7.3 7.3 0 0 0 12 4Z"/></svg></span>
-          <span class="tile-copy"><strong>Design</strong><span id="designTileValue">Violett</span></span><span class="chevron">›</span>
+          <span class="tile-copy"><strong>Design</strong><span id="designTileValue">Dusk</span></span><span class="chevron">›</span>
+        </button>
+
+        <button class="settings-tile" id="backfillTile" type="button">
+          <span class="tile-icon"><svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16"/><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M12 12v5M9.5 14.5h5"/></svg></span>
+          <span class="tile-copy"><strong>Tag nachtragen</strong><span>Nur Anzahl, ohne Uhrzeiten</span></span><span class="chevron">›</span>
         </button>
 
         <button class="settings-tile" id="dataTile" type="button">
@@ -164,11 +169,10 @@
             <strong id="periodSummaryTotal">0</strong>
           </div>
           <div class="period-summary-metrics">
-            <div><span>Ø / Trackingtag</span><strong id="periodSummaryAverage">–</strong></div>
+            <div><span>Ø pro Tag</span><strong id="periodSummaryAverage">–</strong></div>
             <div><span>Im Limit</span><strong id="periodSummaryWithinLimit">–</strong></div>
             <div><span>Beste Pause</span><strong id="periodSummaryBestPause">–</strong></div>
           </div>
-          <div class="period-summary-note" id="periodSummaryNote">Tage ohne Einträge werden nicht als 0 gewertet.</div>
         </div>
 
         <div class="pause-analysis-card">
@@ -232,6 +236,19 @@
 
   <div class="modal-backdrop" id="modalBackdrop" hidden></div>
 
+  <section class="modal-sheet pause-confirm-sheet" id="pauseConfirmSheet" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="pause-confirm-kicker">Pause läuft noch</div>
+    <div class="pause-confirm-time" id="pauseConfirmTime">Noch 8 Min.</div>
+    <div class="pause-confirm-subtitle" id="pauseConfirmSubtitle">bis zu deiner Pause</div>
+    <div class="pause-confirm-track" aria-hidden="true"><span id="pauseConfirmFill"></span></div>
+    <p>Möchtest du noch warten oder trotzdem eintragen?</p>
+    <div class="pause-confirm-actions">
+      <button class="pause-wait-button" id="pauseWaitButton" type="button">Warten</button>
+      <button class="pause-add-anyway-button" id="pauseAddAnywayButton" type="button">Trotzdem eintragen</button>
+    </div>
+  </section>
+
   <section class="modal-sheet" id="limitSheet" aria-hidden="true">
     <div class="sheet-handle"></div><div class="sheet-title">Tägliches Limit</div>
     <div class="limit-stepper"><button id="limitMinus" type="button">−</button><strong id="settingsLimitValue">20</strong><button id="limitPlus" type="button">+</button></div>
@@ -271,13 +288,29 @@
   <section class="modal-sheet" id="designSheet" aria-hidden="true">
     <div class="sheet-handle"></div><div class="sheet-title">Design</div>
     <div class="theme-list" id="themeList">
-      <button data-theme="violet" type="button"><span class="theme-dot violet"></span><span>Violett</span><b>✓</b></button>
-      <button data-theme="blue" type="button"><span class="theme-dot blue"></span><span>Blau</span><b>✓</b></button>
-      <button data-theme="terracotta" type="button"><span class="theme-dot terracotta"></span><span>Terrakotta</span><b>✓</b></button>
-      <button data-theme="green" type="button"><span class="theme-dot green"></span><span>Grün</span><b>✓</b></button>
-      <button data-theme="dark" type="button"><span class="theme-dot dark"></span><span>Dunkel</span><b>✓</b></button>
+      <button data-theme="violet" type="button"><span class="theme-dot violet"></span><span>Dusk</span><b>✓</b></button>
+      <button data-theme="blue" type="button"><span class="theme-dot blue"></span><span>Blue Hour</span><b>✓</b></button>
+      <button data-theme="terracotta" type="button"><span class="theme-dot terracotta"></span><span>Ember Clay</span><b>✓</b></button>
+      <button data-theme="green" type="button"><span class="theme-dot green"></span><span>Sage</span><b>✓</b></button>
+      <button data-theme="dark" type="button"><span class="theme-dot dark"></span><span>Midnight</span><b>✓</b></button>
     </div>
     <button class="primary-sheet-button" id="closeDesignSheet" type="button">Fertig</button>
+  </section>
+
+  <section class="modal-sheet backfill-sheet" id="backfillSheet" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Tag nachtragen</div>
+    <p class="sheet-helper">Speichere nur die Anzahl. Uhrzeiten, Pausen und Rauchmuster bleiben davon unberührt.</p>
+    <label class="time-row backfill-date-row"><span>Tag</span><input id="backfillDate" type="date"></label>
+    <div class="backfill-count-label">Zigaretten</div>
+    <div class="limit-stepper backfill-stepper">
+      <button id="backfillMinus" type="button" aria-label="Anzahl reduzieren">−</button>
+      <strong id="backfillCount">0</strong>
+      <button id="backfillPlus" type="button" aria-label="Anzahl erhöhen">+</button>
+    </div>
+    <button class="sheet-row danger backfill-delete" id="deleteBackfillButton" type="button" hidden>Nachtrag löschen <span>›</span></button>
+    <button class="primary-sheet-button" id="saveBackfillButton" type="button">Speichern</button>
+    <button class="secondary-sheet-button" id="closeBackfillSheet" type="button">Abbrechen</button>
   </section>
 
   <section class="modal-sheet" id="dataSheet" aria-hidden="true">
@@ -308,6 +341,7 @@
     <div class="day-detail-timeline" id="dayDetailTimeline" aria-hidden="true"></div>
     <div class="day-detail-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
     <div class="day-detail-status" id="dayDetailStatus"></div>
+    <button class="day-backfill-button" id="dayBackfillButton" type="button">Anzahl für diesen Tag nachtragen</button>
     <div class="today-sheet-list" id="todaySheetList"></div>
     <button class="primary-sheet-button" id="closeTodaySheet" type="button">Fertig</button>
   </section>
