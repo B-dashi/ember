@@ -14,7 +14,7 @@
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),backfillTile:$("backfillTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),pauseConfirmSheet:$("pauseConfirmSheet"),backfillSheet:$("backfillSheet"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
     limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitLater:$("smartLimitLater"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
-    pauseConfirmTime:$("pauseConfirmTime"),pauseConfirmSubtitle:$("pauseConfirmSubtitle"),pauseConfirmFill:$("pauseConfirmFill"),pauseWaitButton:$("pauseWaitButton"),pauseAddAnywayButton:$("pauseAddAnywayButton"),pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
+    pauseConfirmTime:$("pauseConfirmTime"),pauseConfirmSubtitle:$("pauseConfirmSubtitle"),pauseConfirmFill:$("pauseConfirmFill"),pauseConfirmMessage:$("pauseConfirmMessage"),pauseWaitButton:$("pauseWaitButton"),pauseAddAnywayButton:$("pauseAddAnywayButton"),pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
     analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisRemainingCard:$("analysisRemainingCard"),analysisRemainingTitle:$("analysisRemainingTitle"),analysisRemainingLabel:$("analysisRemainingLabel"),summaryWeekButton:$("summaryWeekButton"),summaryMonthButton:$("summaryMonthButton"),periodSummaryRange:$("periodSummaryRange"),periodSummaryLabel:$("periodSummaryLabel"),periodSummaryTotal:$("periodSummaryTotal"),periodSummaryAverage:$("periodSummaryAverage"),periodSummaryWithinLimit:$("periodSummaryWithinLimit"),periodSummaryBestPause:$("periodSummaryBestPause"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),daypartMorning:$("daypartMorning"),daypartNoon:$("daypartNoon"),daypartAfternoon:$("daypartAfternoon"),daypartEvening:$("daypartEvening"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
@@ -363,6 +363,9 @@
       els.pauseConfirmFill.style.width="100%";
       els.pauseWaitButton.textContent="Zurück";
       els.pauseAddAnywayButton.textContent="Trotzdem eintragen";
+      els.pauseConfirmMessage.textContent=overBy>0
+        ?"Du kannst den Eintrag trotzdem speichern, wenn du möchtest."
+        :"Der nächste Eintrag würde dein Tageslimit überschreiten.";
       if(todayCount>=settings.limit){
         els.pauseConfirmTime.textContent=overBy>0
           ?`Du bist ${overBy} über deinem Limit`
@@ -378,6 +381,7 @@
     if(status.state==="empty"||status.state==="reached")return false;
     els.pauseWaitButton.textContent="Warten";
     els.pauseAddAnywayButton.textContent="Trotzdem eintragen";
+    els.pauseConfirmMessage.textContent="Möchtest du noch warten oder trotzdem eintragen?";
     els.pauseConfirmTime.textContent=`Noch ${formatRemaining(status.remaining)}`;
     els.pauseConfirmSubtitle.textContent="bis zu deiner Pause";
     els.pauseConfirmFill.style.width=`${Math.max(3,Math.round(status.progress*100))}%`;
