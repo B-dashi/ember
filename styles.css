@@ -684,3 +684,345 @@ textarea{
 .theme-dot.dark{
   background:linear-gradient(135deg,#0b0c0f 0 60%,#b69243 60% 100%);
 }
+
+/* Ember v21: iPhone final polish + calmer analysis */
+
+/* Full-bleed hero under the iPhone status bar. Bottom fade intentionally unchanged. */
+.hero-home{
+  min-height:420px;
+  padding-top:calc(env(safe-area-inset-top) + 12px);
+}
+.hero-subpage{
+  padding-top:calc(env(safe-area-inset-top) + 12px);
+}
+
+/* Main ring: slightly smaller so header, ring and primary action have more breathing room. */
+.progress-wrap{
+  width:min(66vw,274px);
+  margin:15px auto 0;
+}
+.progress-center{
+  transform:translateY(-2px);
+}
+.cigarette-mark{
+  width:30px;
+  height:24px;
+}
+.count-line strong{
+  font-size:45px;
+}
+.count-line span{
+  font-size:29px;
+}
+.limit-label{
+  margin-top:3px;
+  font-size:11px;
+}
+
+/* Pause: elapsed time is the main value; compact divider and centered mini tracker. */
+.ring-pause{
+  position:relative;
+  width:142px;
+  margin:10px auto 0;
+  padding:11px 0 0;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:8px;
+  border-top:0;
+}
+.ring-pause::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:50%;
+  width:88px;
+  height:1px;
+  transform:translateX(-50%);
+  border-radius:99px;
+  background:color-mix(in srgb,var(--hero-ink) 13%,transparent);
+}
+.pause-dial,
+.pause-dial-ring{
+  width:32px;
+  height:32px;
+}
+.pause-dial-track,
+.pause-dial-value{
+  stroke-width:3.2;
+}
+.pause-dial-clock{
+  width:15px;
+  height:15px;
+}
+.ring-pause-copy small{
+  font-size:9.5px;
+  line-height:1;
+}
+.ring-pause-copy strong{
+  margin-top:3px;
+  font-size:15.5px;
+  line-height:1.02;
+}
+.ring-pause-copy>span{
+  margin-top:3px;
+  font-size:10px;
+  line-height:1.08;
+  max-width:none;
+  overflow:visible;
+  text-overflow:clip;
+}
+
+/* Primary action stays dominant but a touch less tall. */
+.add-button{
+  min-height:52px;
+}
+
+/* Last cigarette is secondary to the hero and pause. */
+#lastCard{
+  min-height:82px;
+  padding:12px 17px;
+  grid-template-columns:40px 1fr auto;
+  gap:13px;
+}
+#lastCard .card-icon{
+  width:40px;
+  height:40px;
+}
+#lastCard .card-icon svg{
+  width:22px;
+  height:22px;
+}
+#lastCard .info-copy small{
+  font-size:13px;
+}
+#lastCard .info-copy strong{
+  font-size:19px;
+  margin:1px 0;
+}
+#lastCard .info-copy span{
+  font-size:12.5px;
+}
+
+/* Today list grows with content instead of looking oversized for 0–2 entries. */
+.entries-card{
+  min-height:0;
+}
+.entries-card.is-compact{
+  padding:15px 17px 12px;
+}
+.entries-card.is-compact .section-head{
+  padding-bottom:8px;
+}
+.entries-card.is-compact .entry-row{
+  padding:11px 0;
+}
+.entries-card.is-empty{
+  padding-bottom:14px;
+}
+.entries-card.is-empty .empty-state{
+  padding:11px 0 3px;
+}
+
+/* Analysis: one visual system, fewer competing blocks. */
+.analysis-content{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.analysis-content > *{
+  margin-top:0!important;
+}
+.stats-grid{
+  gap:10px;
+}
+.stats-grid-primary .stat-card{
+  min-height:94px;
+}
+.stat-card{
+  min-height:94px;
+  padding:15px 16px;
+  border-radius:22px;
+}
+.stat-card span,
+.stat-card small{
+  font-size:12.5px;
+}
+.stat-card strong{
+  font-size:26px;
+  margin:6px 0 1px;
+}
+.analysis-section-card,
+.pause-analysis-card,
+.patterns-card,
+.chart-card{
+  border-radius:24px;
+  padding:17px 18px;
+}
+.chart-title{
+  gap:2px;
+}
+.chart-title>strong{
+  font-size:16px;
+}
+.chart-title span{
+  font-size:12.5px;
+}
+
+/* Unified overview card: comparison + spacing metrics in one calm block. */
+.summary-comparison{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  margin-top:15px;
+}
+.summary-comparison>span{
+  color:var(--muted);
+  font-size:12.5px;
+  font-weight:600;
+}
+.summary-comparison>strong{
+  margin-top:2px;
+  font-size:22px;
+  line-height:1.05;
+  letter-spacing:-.03em;
+}
+.summary-comparison>small{
+  color:var(--muted);
+  font-size:12.5px;
+  line-height:1.3;
+}
+.summary-metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin-top:15px;
+  padding-top:14px;
+  border-top:1px solid color-mix(in srgb,var(--muted) 13%,transparent);
+}
+.summary-metrics>div{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.summary-metrics>div+div{
+  padding-left:16px;
+  border-left:1px solid color-mix(in srgb,var(--muted) 13%,transparent);
+}
+.summary-metrics span{
+  color:var(--muted);
+  font-size:12.5px;
+}
+.summary-metrics strong{
+  font-size:20px;
+  letter-spacing:-.025em;
+}
+
+/* Pause analysis: same hierarchy as the rest, no red competing headline. */
+.pause-analysis-card .current-pause-row{
+  margin-top:15px;
+}
+.pause-analysis-card .current-pause-row span{
+  font-size:12.5px;
+}
+.pause-analysis-card .current-pause-row strong{
+  font-size:20px;
+}
+.current-pause-track{
+  margin:10px 0 14px;
+  height:6px;
+}
+.pause-analysis-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  padding-top:13px;
+  border-top:1px solid color-mix(in srgb,var(--muted) 13%,transparent);
+}
+.pause-analysis-stats>div{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.pause-analysis-stats>div+div{
+  padding-left:16px;
+  border-left:1px solid color-mix(in srgb,var(--muted) 13%,transparent);
+}
+.pause-analysis-stats span{
+  color:var(--muted);
+  font-size:12px;
+}
+.pause-analysis-stats strong{
+  font-size:19px;
+  letter-spacing:-.02em;
+}
+.pause-analysis-caption{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:11.5px;
+  line-height:1.3;
+}
+
+/* Pattern card less visually loud. */
+.pattern-list{
+  margin-top:12px;
+}
+.pattern-row{
+  padding:9px 10px;
+  border-radius:14px;
+  font-size:12.5px;
+}
+
+/* Keep timeline useful without making it the loudest card. */
+.timeline-plot{
+  height:86px;
+  margin-top:16px;
+}
+.timeline-event-time{
+  font-size:9px;
+}
+.timeline-axis{
+  font-size:9.5px;
+}
+
+/* Dark theme analysis uses the same neutral hierarchy. */
+:root[data-theme="dark"] .summary-metrics,
+:root[data-theme="dark"] .pause-analysis-stats{
+  border-color:rgba(211,177,91,.09);
+}
+:root[data-theme="dark"] .summary-metrics>div+div,
+:root[data-theme="dark"] .pause-analysis-stats>div+div{
+  border-color:rgba(211,177,91,.09);
+}
+
+@media(max-width:390px){
+  .hero-home{
+    min-height:405px;
+    padding-top:calc(env(safe-area-inset-top) + 10px);
+  }
+  .progress-wrap{
+    width:min(68vw,262px);
+    margin-top:13px;
+  }
+  .count-line strong{font-size:43px}
+  .count-line span{font-size:28px}
+  .ring-pause{
+    width:138px;
+    margin-top:9px;
+    grid-template-columns:31px minmax(0,1fr);
+    gap:7px;
+  }
+  .pause-dial,
+  .pause-dial-ring{
+    width:31px;
+    height:31px;
+  }
+  .ring-pause-copy strong{font-size:15px}
+  .ring-pause-copy>span{font-size:9.5px}
+  #lastCard{min-height:80px}
+  #lastCard .info-copy strong{font-size:18.5px}
+  .analysis-content{gap:10px}
+  .analysis-section-card,
+  .pause-analysis-card,
+  .patterns-card,
+  .chart-card{
+    padding:16px;
+  }
+}
