@@ -2781,3 +2781,150 @@ html{
     transition:none!important;
   }
 }
+
+/* Ember v35: native horizontal pager with persistent pages */
+html,
+body{
+  height:100%;
+  overflow:hidden;
+}
+.app-shell{
+  width:min(100%,520px);
+  height:100dvh;
+  min-height:100dvh;
+  overflow:hidden;
+  position:relative;
+}
+.pager-track{
+  width:100%;
+  height:100%;
+  display:flex;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  touch-action:pan-x pan-y;
+}
+.pager-track::-webkit-scrollbar{
+  display:none;
+}
+.pager-track>.view{
+  flex:0 0 100%;
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  -webkit-overflow-scrolling:touch;
+  background:var(--page);
+  transform:none!important;
+  opacity:1!important;
+  position:relative!important;
+  inset:auto!important;
+  will-change:auto;
+}
+#analysisView{order:1}
+#homeView{order:2}
+#settingsView{order:3}
+
+/* Keep each page's own vertical position while swiping horizontally. */
+#homeView,
+#analysisView,
+#settingsView{
+  overscroll-behavior-y:contain;
+}
+
+/* Subpage controls now point toward Home and sit quietly inside the hero. */
+.pager-subpage-header{
+  grid-template-columns:72px 1fr 72px;
+}
+.pager-home-button{
+  min-width:58px;
+  height:36px;
+  padding:0 10px;
+  border-radius:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  color:var(--hero-ink);
+  background:rgba(255,255,255,.11);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 5px 14px rgba(20,18,45,.08);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  font-size:11px;
+  font-weight:680;
+  letter-spacing:-.01em;
+}
+.pager-home-button svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.pager-home-button.is-left{
+  justify-self:start;
+}
+.pager-home-button.is-right{
+  justify-self:end;
+}
+
+/* Dots stay visible but secondary to content. */
+.page-dots{
+  bottom:calc(env(safe-area-inset-bottom) + 7px);
+  padding:4px 6px;
+  gap:2px;
+  background:color-mix(in srgb,var(--card) 80%,transparent);
+}
+.page-dot{
+  width:21px;
+  height:20px;
+}
+.page-dot::before{
+  width:5px;
+  height:5px;
+}
+.page-dot.is-active::before{
+  width:14px;
+}
+
+/* Remove the old staged transition behavior now that the browser scrolls the pager natively. */
+.view.page-entering,
+.view.page-leaving,
+.view.swipe-dragging,
+.view.swipe-snapback{
+  transition:none!important;
+}
+
+:root[data-theme="dark"] .pager-home-button{
+  background:rgba(255,255,255,.055);
+  border-color:rgba(211,177,91,.14);
+  box-shadow:0 5px 14px rgba(0,0,0,.18);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .pager-track{
+    scroll-behavior:auto;
+  }
+}
+
+@media(max-width:390px){
+  .pager-subpage-header{
+    grid-template-columns:64px 1fr 64px;
+  }
+  .pager-home-button{
+    min-width:54px;
+    height:34px;
+    padding:0 8px;
+    font-size:10.5px;
+  }
+}
