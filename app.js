@@ -845,7 +845,6 @@
   els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
   els.dayBackfillButton.addEventListener("click",()=>{if(activeDaySheetDate)openBackfillSheet(activeDaySheetDate)});
   els.backfillDate.addEventListener("change",updateBackfillSheetForDate);
-  els.backfillCount.addEventListener("focus",()=>els.backfillCount.select());
   els.backfillCount.addEventListener("input",()=>{
     const raw=Number(els.backfillCount.value);
     if(Number.isFinite(raw)){backfillCountValue=clamp(Math.round(raw),0,99);renderBackfillLimitHint()}
@@ -857,10 +856,9 @@
   els.deleteBackfillButton.addEventListener("click",deleteBackfill);
   els.closeBackfillSheet.addEventListener("click",()=>closeSheets());
 
-  const openLimitSheet=()=>{render();openSheet(els.limitSheet);setTimeout(()=>els.settingsLimitValue.focus({preventScroll:true}),220)};
+  const openLimitSheet=()=>{render();openSheet(els.limitSheet)};
   els.limitTile.addEventListener("click",openLimitSheet);
   els.limitQuickButton.addEventListener("click",openLimitSheet);
-  els.settingsLimitValue.addEventListener("focus",()=>els.settingsLimitValue.select());
   els.settingsLimitValue.addEventListener("change",()=>setDailyLimit(els.settingsLimitValue.value));
   bindPressRepeat(els.limitMinus,()=>setDailyLimit(settings.limit-1));
   bindPressRepeat(els.limitPlus,()=>setDailyLimit(settings.limit+1));
@@ -870,7 +868,6 @@
   els.closeLimitSheet.addEventListener("click",()=>closeSheets());
 
   els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));
-  els.settingsPauseValue.addEventListener("focus",()=>els.settingsPauseValue.select());
   els.settingsPauseValue.addEventListener("change",()=>setPauseGoal(els.settingsPauseValue.value));
   bindPressRepeat(els.pauseMinus,()=>setPauseGoal(settings.pauseGoal-5));
   bindPressRepeat(els.pausePlus,()=>setPauseGoal(settings.pauseGoal+5));
