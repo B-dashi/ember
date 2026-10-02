@@ -11,6 +11,10 @@
   --ring-track:rgba(232,226,255,.28);
   --hero-ink:#ffffff;
   --hero-muted:rgba(255,255,255,.78);
+  --pause-track:color-mix(in srgb,var(--hero-ink) 18%,transparent);
+  --pause-active:color-mix(in srgb,var(--hero-ink) 76%,var(--accent) 24%);
+  --pause-close:color-mix(in srgb,var(--hero-ink) 58%,var(--accent) 42%);
+  --pause-success:color-mix(in srgb,var(--hero-ink) 50%,#2f8f5b 50%);
   --shadow:0 12px 30px rgba(76,62,133,.10);
   --hero-image:url("theme-background-violet.webp");
   --hero-overlay:linear-gradient(180deg,rgba(48,46,135,.04),rgba(245,243,255,.05));
@@ -33,108 +37,109 @@ button,input{font:inherit}button{border:0;color:inherit}.app-shell{width:min(100
 .pattern-list{display:flex;flex-direction:column;gap:9px;margin-top:14px}.pattern-row{display:grid;grid-template-columns:8px 1fr;gap:10px;align-items:start;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,var(--accent-soft) 52%,rgba(255,255,255,.6));font-size:13px;line-height:1.35;color:var(--ink)}.pattern-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:5px;box-shadow:0 0 0 4px var(--accent-soft)}.pattern-empty{padding:11px 12px;border-radius:16px;background:rgba(120,124,155,.07);color:var(--muted);font-size:13px;line-height:1.4}
 
 .ring-pause{
-  width:194px;
-  margin-top:9px;
-  padding:8px 2px 0;
+  width:168px;
+  margin:10px auto 0;
+  padding:9px 4px 0;
+  display:grid;
+  grid-template-columns:40px 1fr;
+  align-items:center;
+  gap:9px;
   background:transparent;
-  border-top:1px solid color-mix(in srgb,var(--hero-ink) 18%,transparent);
+  border-top:1px solid color-mix(in srgb,var(--hero-ink) 16%,transparent);
   color:var(--hero-ink);
   text-align:left;
 }
-.ring-pause-main{
-  display:grid;
-  grid-template-columns:28px 1fr auto;
-  align-items:center;
-  gap:8px;
-}
-.ring-pause-clock{
-  width:28px;
-  height:28px;
-  border-radius:50%;
+.pause-dial{
+  width:40px;
+  height:40px;
+  position:relative;
   display:grid;
   place-items:center;
-  background:color-mix(in srgb,var(--hero-ink) 9%,transparent);
-  border:1px solid color-mix(in srgb,var(--hero-ink) 15%,transparent);
+  flex:none;
 }
-.ring-pause-clock svg{
-  width:17px;
-  height:17px;
+.pause-dial-ring{
+  position:absolute;
+  inset:0;
+  width:40px;
+  height:40px;
+  transform:rotate(-90deg);
+  overflow:visible;
+}
+.pause-dial-track,
+.pause-dial-value{
   fill:none;
-  stroke:currentColor;
+  stroke-width:3.4;
+}
+.pause-dial-track{
+  stroke:var(--pause-track);
+}
+.pause-dial-value{
+  stroke:var(--pause-active);
+  stroke-linecap:round;
+  stroke-dasharray:100;
+  stroke-dashoffset:100;
+  transition:stroke-dashoffset .35s ease,stroke .28s ease,filter .28s ease;
+}
+.pause-dial-clock{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:var(--hero-ink);
   stroke-width:1.8;
   stroke-linecap:round;
   stroke-linejoin:round;
+  opacity:.88;
 }
 .ring-pause-copy{
   display:flex;
   flex-direction:column;
   min-width:0;
-  line-height:1.05;
+  line-height:1.06;
 }
 .ring-pause-copy small{
-  font-size:10.5px;
-  font-weight:650;
+  font-size:10px;
+  font-weight:680;
   color:var(--hero-muted);
+  letter-spacing:.01em;
 }
 .ring-pause-copy strong{
   margin-top:2px;
-  font-size:14px;
-  font-weight:780;
-  letter-spacing:-.02em;
+  font-size:14.5px;
+  font-weight:800;
+  letter-spacing:-.025em;
   color:var(--hero-ink);
   white-space:nowrap;
 }
 .ring-pause-copy>span{
   margin-top:2px;
   font-size:9.5px;
-  font-weight:560;
+  font-weight:580;
   color:var(--hero-muted);
   white-space:nowrap;
 }
-.ring-pause-goal{
-  align-self:start;
-  padding-top:1px;
-  font-size:10px;
-  font-weight:650;
-  color:var(--hero-muted);
-  white-space:nowrap;
+.ring-pause[data-state="close"] .pause-dial-value{
+  stroke:var(--pause-close);
+  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent) 34%,transparent));
 }
-.ring-pause-track{
-  display:block;
-  height:5px;
-  margin:7px 2px 0 36px;
-  border-radius:999px;
-  overflow:hidden;
-  background:color-mix(in srgb,var(--hero-ink) 13%,transparent);
+.ring-pause[data-state="close"] .ring-pause-copy strong{
+  color:var(--pause-close);
 }
-.ring-pause-track>span{
-  display:block;
-  width:0;
-  height:100%;
-  border-radius:inherit;
-  background:linear-gradient(90deg,var(--accent-2),var(--accent));
-  transition:width .35s ease,background .28s ease;
+.ring-pause[data-state="reached"] .pause-dial-value{
+  stroke:var(--pause-success);
+  filter:drop-shadow(0 0 4px color-mix(in srgb,#2f8f5b 26%,transparent));
 }
-.ring-pause[data-state="close"] .ring-pause-copy strong,
-.ring-pause[data-state="close"] .ring-pause-copy>span{
-  color:color-mix(in srgb,var(--accent-2) 80%,white);
+.ring-pause[data-state="reached"] .pause-dial-clock,
+.ring-pause[data-state="reached"] .ring-pause-copy strong{
+  color:var(--pause-success);
+  stroke:var(--pause-success);
 }
-.ring-pause[data-state="close"] .ring-pause-track>span{
-  background:var(--accent-2);
-  box-shadow:0 0 10px color-mix(in srgb,var(--accent) 45%,transparent);
-}
-.ring-pause[data-state="reached"] .ring-pause-copy strong,
-.ring-pause[data-state="reached"] .ring-pause-copy>span{
-  color:#9be0b4;
-}
-.ring-pause[data-state="reached"] .ring-pause-track>span{
-  background:#69b987;
-}
+
 .comparison-analysis-card{margin-top:14px}
 .comparison-analysis-main{font-size:24px;font-weight:780;letter-spacing:-.035em;margin-top:13px}
 .comparison-analysis-sub{font-size:13.5px;color:var(--muted);font-weight:600;line-height:1.4;margin-top:3px}
 @media(max-width:390px){
-  .ring-pause{width:186px;margin-top:8px}
-  .ring-pause-copy strong{font-size:13.5px}
+  .ring-pause{width:162px;margin-top:8px;grid-template-columns:38px 1fr;gap:8px}
+  .pause-dial,.pause-dial-ring{width:38px;height:38px}
+  .ring-pause-copy strong{font-size:14px}
   .comparison-analysis-main{font-size:23px}
 }
