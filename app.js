@@ -4,10 +4,10 @@
   const STORAGE_ENTRIES = "ember.v1.entries";
   const STORAGE_SETTINGS = "ember.v1.settings";
   const THEMES = {
-    blue: { themeColor: "#f4f8fc" },
-    terracotta: { themeColor: "#f8f3ec" },
-    green: { themeColor: "#f3f5ef" },
-    violet: { themeColor: "#151628" }
+    blue: { themeColor: "#f4f7fb" },
+    terracotta: { themeColor: "#faf4ed" },
+    green: { themeColor: "#f4f6f0" },
+    violet: { themeColor: "#111426" }
   };
   const THEME_MIGRATION = { orange: "terracotta", teal: "blue", graphite: "violet" };
 
@@ -28,12 +28,12 @@
   let editingId = null;
   let toastTimer = null;
 
-  function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
-  function dayStart(date = new Date()) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime(); }
-  function formatTime(date) { return new Intl.DateTimeFormat("de-AT", { hour: "2-digit", minute: "2-digit" }).format(date); }
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const dayStart = (date = new Date()) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const formatTime = date => new Intl.DateTimeFormat("de-AT", { hour: "2-digit", minute: "2-digit" }).format(date);
   function formatDate(date = new Date()) {
-    const s = new Intl.DateTimeFormat("de-AT", { weekday: "long", day: "numeric", month: "long" }).format(date);
-    return s.charAt(0).toUpperCase() + s.slice(1);
+    const text = new Intl.DateTimeFormat("de-AT", { weekday: "long", day: "numeric", month: "long" }).format(date);
+    return text.charAt(0).toUpperCase() + text.slice(1);
   }
   function relativeTime(date) {
     const mins = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
@@ -45,35 +45,35 @@
     if (hours < 24) return `vor ${hours} Std.`;
     return "früher";
   }
-  function entryLabel(count) { return count === 1 ? "1 Eintrag" : `${count} Einträge`; }
-  function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch])); }
+  const entryLabel = count => count === 1 ? "1 Eintrag" : `${count} Einträge`;
+  const escapeHtml = value => String(value).replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
 
   function loadEntries() {
     try {
       const raw = JSON.parse(localStorage.getItem(STORAGE_ENTRIES) || "[]");
       if (!Array.isArray(raw)) return [];
-      return raw.filter(x => x && typeof x.id === "string" && typeof x.time === "string" && !Number.isNaN(Date.parse(x.time))).sort((a,b) => Date.parse(a.time) - Date.parse(b.time));
+      return raw.filter(item => item && typeof item.id === "string" && typeof item.time === "string" && !Number.isNaN(Date.parse(item.time))).sort((a,b) => Date.parse(a.time)-Date.parse(b.time));
     } catch { return []; }
   }
   function loadSettings() {
-    const fallback = { limit: 20, theme: "terracotta" };
+    const fallback = { limit: 20, theme: "blue" };
     try {
       const raw = JSON.parse(localStorage.getItem(STORAGE_SETTINGS) || "{}");
       const migrated = THEME_MIGRATION[raw.theme] || raw.theme;
       return {
-        limit: Number.isFinite(Number(raw.limit)) ? clamp(Math.round(Number(raw.limit)), 1, 99) : fallback.limit,
+        limit: Number.isFinite(Number(raw.limit)) ? clamp(Math.round(Number(raw.limit)),1,99) : fallback.limit,
         theme: THEMES[migrated] ? migrated : fallback.theme
       };
     } catch { return fallback; }
   }
-  function saveEntries() { localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries)); }
-  function saveSettings() { localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings)); }
+  const saveEntries = () => localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries));
+  const saveSettings = () => localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings));
 
   function entriesForDay(startMs) {
     const end = startMs + 86400000;
     return entries.filter(item => { const t = Date.parse(item.time); return t >= startMs && t < end; });
   }
-  function todaysEntries() { return entriesForDay(dayStart()); }
+  const todaysEntries = () => entriesForDay(dayStart());
 
   function applyTheme() {
     document.documentElement.dataset.theme = settings.theme;
@@ -88,13 +88,13 @@
     const today = todaysEntries();
     const count = today.length;
     const limit = settings.limit;
-    const progress = clamp(count / limit, 0, 1);
     const newest = today[today.length - 1];
+    const progress = clamp(count / limit, 0, 1);
 
     els.dateLabel.textContent = formatDate();
     els.todayCount.textContent = String(count);
     els.limitCount.textContent = String(limit);
-    els.remainingText.textContent = count < limit ? `${limit - count} verbleibend` : count === limit ? "Limit erreicht" : `${count - limit} über Limit`;
+    els.remainingText.textContent = count < limit ? `${limit-count} verbleibend` : count === limit ? "Limit erreicht" : `${count-limit} über Limit`;
     els.progressCircle.style.strokeDashoffset = String(100 - progress * 100);
     els.settingsLimitValue.textContent = String(limit);
     els.entryCountLabel.textContent = entryLabel(count);
@@ -111,13 +111,12 @@
     }
 
     els.entryList.innerHTML = "";
-    [...today].reverse().forEach((entry, index) => {
-      const number = count - index;
+    [...today].reverse().forEach((entry,index) => {
+      const number = count-index;
       const time = formatTime(new Date(entry.time));
       const button = document.createElement("button");
       button.type = "button";
       button.className = "entry-row";
-      button.dataset.id = entry.id;
       button.setAttribute("aria-label", `Eintrag ${number} um ${time} bearbeiten`);
       button.innerHTML = `<span class="entry-dot" aria-hidden="true"></span><span class="entry-time">${escapeHtml(time)}</span><span class="entry-number">${number}.</span><span class="entry-chevron" aria-hidden="true">›</span>`;
       button.addEventListener("click", () => openEdit(entry.id));
@@ -130,15 +129,15 @@
   function renderAnalysis() {
     const today = todaysEntries();
     const count = today.length;
-    const newest = today[today.length - 1];
+    const newest = today[today.length-1];
     els.analysisToday.textContent = String(count);
-    els.analysisRemaining.textContent = String(Math.max(settings.limit - count, 0));
+    els.analysisRemaining.textContent = String(Math.max(settings.limit-count,0));
     els.analysisLast.textContent = newest ? formatTime(new Date(newest.time)) : "–";
 
     if (today.length >= 2) {
       let sum = 0;
-      for (let i = 1; i < today.length; i++) sum += Date.parse(today[i].time) - Date.parse(today[i-1].time);
-      const avgMins = Math.round(sum / (today.length - 1) / 60000);
+      for (let i=1; i<today.length; i++) sum += Date.parse(today[i].time)-Date.parse(today[i-1].time);
+      const avgMins = Math.round(sum/(today.length-1)/60000);
       els.analysisGap.textContent = avgMins >= 60 ? `${Math.floor(avgMins/60)}h ${avgMins%60}m` : `${avgMins} Min.`;
     } else {
       els.analysisGap.textContent = "–";
@@ -146,18 +145,18 @@
 
     const days = [];
     const base = dayStart();
-    for (let i = 6; i >= 0; i--) {
-      const start = base - i * 86400000;
+    for (let i=6; i>=0; i--) {
+      const start = base-i*86400000;
       const date = new Date(start);
-      days.push({ start, date, count: entriesForDay(start).length });
+      days.push({start,date,count:entriesForDay(start).length});
     }
-    const max = Math.max(settings.limit, ...days.map(d => d.count), 1);
+    const max = Math.max(settings.limit,...days.map(day => day.count),1);
     els.weekChart.innerHTML = "";
     days.forEach(day => {
       const col = document.createElement("div");
       col.className = "day-bar";
-      const pct = Math.max(3, Math.round(day.count / max * 100));
-      const label = new Intl.DateTimeFormat("de-AT", { weekday: "short" }).format(day.date).replace(".", "");
+      const pct = Math.max(3,Math.round(day.count/max*100));
+      const label = new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(day.date).replace(".","");
       col.innerHTML = `<span class="bar-count">${day.count}</span><span class="bar-track"><span class="bar-fill" style="height:${pct}%"></span></span><span class="bar-label">${escapeHtml(label)}</span>`;
       els.weekChart.appendChild(col);
     });
@@ -165,73 +164,70 @@
 
   function addEntry() {
     const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const entry = { id, time: new Date().toISOString() };
-    entries.push(entry); entries.sort((a,b) => Date.parse(a.time)-Date.parse(b.time)); saveEntries();
-    lastAddedId = id; render(); showToast(`Zigarette um ${formatTime(new Date(entry.time))} gespeichert`, true);
+    const entry = {id,time:new Date().toISOString()};
+    entries.push(entry); entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)); saveEntries();
+    lastAddedId = id; render(); showToast(`Zigarette um ${formatTime(new Date(entry.time))} gespeichert`,true);
   }
   function undoLastAdd() {
     if (!lastAddedId) return;
-    entries = entries.filter(x => x.id !== lastAddedId); saveEntries(); lastAddedId = null; render(); showToast("Eintrag entfernt", false);
+    entries = entries.filter(item => item.id !== lastAddedId); saveEntries(); lastAddedId = null; render(); showToast("Eintrag entfernt",false);
   }
-
-  function showToast(text, undo) {
-    window.clearTimeout(toastTimer); els.toastText.textContent = text; els.undoButton.hidden = !undo; els.toast.classList.add("is-visible"); els.toast.setAttribute("aria-hidden", "false");
-    toastTimer = window.setTimeout(hideToast, 4200);
+  function showToast(text,undo) {
+    window.clearTimeout(toastTimer); els.toastText.textContent = text; els.undoButton.hidden = !undo; els.toast.classList.add("is-visible"); els.toast.setAttribute("aria-hidden","false");
+    toastTimer = window.setTimeout(hideToast,4200);
   }
-  function hideToast() { els.toast.classList.remove("is-visible"); els.toast.setAttribute("aria-hidden", "true"); }
+  function hideToast() { els.toast.classList.remove("is-visible"); els.toast.setAttribute("aria-hidden","true"); }
 
   function openSheet(sheet) {
-    closeSheets(false);
-    els.sheetBackdrop.hidden = false;
+    closeSheets(false); els.sheetBackdrop.hidden = false;
     requestAnimationFrame(() => { els.sheetBackdrop.classList.add("is-visible"); sheet.classList.add("is-open"); });
-    sheet.setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden";
+    sheet.setAttribute("aria-hidden","false"); document.body.style.overflow = "hidden";
   }
-  function closeSheets(hideBackdrop = true) {
-    [els.settingsSheet, els.analysisSheet, els.editSheet].forEach(sheet => { sheet.classList.remove("is-open"); sheet.setAttribute("aria-hidden", "true"); });
+  function closeSheets(hideBackdrop=true) {
+    [els.settingsSheet,els.analysisSheet,els.editSheet].forEach(sheet => { sheet.classList.remove("is-open"); sheet.setAttribute("aria-hidden","true"); });
     if (hideBackdrop) {
       els.sheetBackdrop.classList.remove("is-visible");
-      window.setTimeout(() => { els.sheetBackdrop.hidden = true; document.body.style.overflow = ""; }, 230);
+      window.setTimeout(() => { els.sheetBackdrop.hidden = true; document.body.style.overflow = ""; },220);
     }
   }
 
   function openEdit(id) {
-    const entry = entries.find(x => x.id === id); if (!entry) return;
-    editingId = id; const d = new Date(entry.time);
-    els.editTime.value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    const entry = entries.find(item => item.id === id); if (!entry) return;
+    editingId = id; const date = new Date(entry.time);
+    els.editTime.value = `${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
     openSheet(els.editSheet);
   }
   function saveEditedEntry() {
-    const entry = entries.find(x => x.id === editingId); if (!entry || !els.editTime.value) return;
-    const [h,m] = els.editTime.value.split(":").map(Number); const d = new Date(entry.time); d.setHours(h,m,0,0); entry.time = d.toISOString();
-    entries.sort((a,b) => Date.parse(a.time)-Date.parse(b.time)); saveEntries(); closeSheets(); render(); showToast("Eintrag aktualisiert", false);
+    const entry = entries.find(item => item.id === editingId); if (!entry || !els.editTime.value) return;
+    const [hour,minute] = els.editTime.value.split(":").map(Number); const date = new Date(entry.time); date.setHours(hour,minute,0,0); entry.time = date.toISOString();
+    entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)); saveEntries(); closeSheets(); render(); showToast("Eintrag aktualisiert",false);
   }
   function deleteEditedEntry() {
-    if (!editingId) return; entries = entries.filter(x => x.id !== editingId); saveEntries(); editingId = null; closeSheets(); render(); showToast("Eintrag gelöscht", false);
+    if (!editingId) return; entries = entries.filter(item => item.id !== editingId); saveEntries(); editingId = null; closeSheets(); render(); showToast("Eintrag gelöscht",false);
   }
 
-  els.addButton.addEventListener("click", addEntry);
-  els.undoButton.addEventListener("click", undoLastAdd);
-  els.settingsButton.addEventListener("click", () => openSheet(els.settingsSheet));
-  els.analysisButton.addEventListener("click", () => { renderAnalysis(); openSheet(els.analysisSheet); });
-  els.closeSettingsButton.addEventListener("click", () => closeSheets());
-  els.closeAnalysisButton.addEventListener("click", () => closeSheets());
-  els.sheetBackdrop.addEventListener("click", () => closeSheets());
-  els.cancelEditButton.addEventListener("click", () => closeSheets());
-  els.saveEditButton.addEventListener("click", saveEditedEntry);
-  els.deleteEntryButton.addEventListener("click", deleteEditedEntry);
-  els.lastCard.addEventListener("click", () => { const t = todaysEntries(); const newest = t[t.length-1]; if (newest) openEdit(newest.id); });
-
-  els.limitMinus.addEventListener("click", () => { settings.limit = clamp(settings.limit - 1, 1, 99); saveSettings(); render(); });
-  els.limitPlus.addEventListener("click", () => { settings.limit = clamp(settings.limit + 1, 1, 99); saveSettings(); render(); });
-  els.themeGrid.addEventListener("click", event => {
+  els.addButton.addEventListener("click",addEntry);
+  els.undoButton.addEventListener("click",undoLastAdd);
+  els.analysisButton.addEventListener("click",() => { renderAnalysis(); openSheet(els.analysisSheet); });
+  els.settingsButton.addEventListener("click",() => openSheet(els.settingsSheet));
+  els.closeSettingsButton.addEventListener("click",() => closeSheets());
+  els.closeAnalysisButton.addEventListener("click",() => closeSheets());
+  els.sheetBackdrop.addEventListener("click",() => closeSheets());
+  els.cancelEditButton.addEventListener("click",() => closeSheets());
+  els.saveEditButton.addEventListener("click",saveEditedEntry);
+  els.deleteEntryButton.addEventListener("click",deleteEditedEntry);
+  els.lastCard.addEventListener("click",() => { const today = todaysEntries(); const newest = today[today.length-1]; if (newest) openEdit(newest.id); });
+  els.limitMinus.addEventListener("click",() => { settings.limit = clamp(settings.limit-1,1,99); saveSettings(); render(); });
+  els.limitPlus.addEventListener("click",() => { settings.limit = clamp(settings.limit+1,1,99); saveSettings(); render(); });
+  els.themeGrid.addEventListener("click",event => {
     const button = event.target.closest(".theme-option"); if (!button || !THEMES[button.dataset.theme]) return;
     settings.theme = button.dataset.theme; saveSettings(); applyTheme(); render();
   });
 
-  window.setInterval(() => { const t = todaysEntries(); const newest = t[t.length-1]; if (newest) els.lastRelative.textContent = relativeTime(new Date(newest.time)); }, 30000);
-  window.addEventListener("focus", render);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+  window.setInterval(() => { const today = todaysEntries(); const newest = today[today.length-1]; if (newest) els.lastRelative.textContent = relativeTime(new Date(newest.time)); },30000);
+  window.addEventListener("focus",render);
+  document.addEventListener("visibilitychange",() => { if (!document.hidden) render(); });
 
   applyTheme(); render();
-  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
+  if ("serviceWorker" in navigator) window.addEventListener("load",() => navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
