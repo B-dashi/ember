@@ -2565,3 +2565,55 @@ html{
 .view{
   touch-action:pan-y;
 }
+
+/* Ember v32: clearer manual-day badge + swipe affordance polish */
+
+/* The manual-count label must fit even in narrow seven-column week cells. */
+.week-day.is-manual>small{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:calc(100% - 4px);
+  min-height:16px;
+  margin-top:1px;
+  padding:2px 4px;
+  border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 12%,var(--card));
+  color:var(--accent);
+  font-size:6.9px;
+  font-weight:780;
+  line-height:1;
+  letter-spacing:-.015em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:clip;
+}
+.week-day.is-manual{
+  padding-left:2px;
+  padding-right:2px;
+}
+.month-day.is-manual::after{
+  content:"";
+  position:absolute;
+  right:5px;
+  top:5px;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
+
+/* Keep horizontal navigation responsive without interfering with vertical scrolling. */
+.view{
+  overscroll-behavior-x:none;
+}
+#settingsView,
+#homeView{
+  touch-action:pan-y;
+}
+
+:root[data-theme="dark"] .week-day.is-manual>small{
+  background:rgba(182,146,67,.12);
+  color:#d6b65f;
+}
