@@ -388,11 +388,12 @@
   function comparisonCopy(todayCount){const yesterdayCount=yesterdayCountAtCurrentTime(),diff=todayCount-yesterdayCount;if(diff===0)return"Gleich wie gestern um diese Uhrzeit";const amount=Math.abs(diff);return`${amount} ${diff<0?"weniger":"mehr"} als gestern um diese Uhrzeit`}
   function applyTheme(){document.documentElement.dataset.theme=settings.theme;document.querySelector('meta[name="theme-color"]')?.setAttribute("content",THEMES[settings.theme].themeColor);els.designTileValue.textContent=THEMES[settings.theme].name;els.themeList.querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.theme===settings.theme)))}
   function render(){
-    const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1);
+    const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1),over=count>limit;
     els.dateLabel.textContent=formatDate();
     els.todayCount.textContent=count;
     els.limitCount.textContent=limit;
-    els.remainingText.textContent=`Tageslimit ${limit}`;
+    els.remainingText.textContent=over?`${count-limit} über Tageslimit`:`Tageslimit ${limit}`;
+    els.progressWrap.classList.toggle("is-over-limit",over);
     renderPauseStatus();
     els.progressCircle.style.strokeDashoffset=String(100-progress*100);
     els.limitTileValue.textContent=`${limit} Zigaretten`;
@@ -401,8 +402,6 @@
     els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;
     els.settingsPauseValue.textContent=settings.pauseGoal;
     renderSmartPauseSuggestion();
-    els.analysisComparisonCount.textContent=`${count} heute`;
-    els.analysisComparisonText.textContent=comparisonCopy(count);
     renderDaySummary(today);
     renderTodaySheet();
 
@@ -419,11 +418,12 @@
     renderAnalysis();
   }
   function renderAnalysis(){
-    const today=todaysEntries(),count=today.length,todayGaps=gapMinutes(today),avgToday=averageFromGaps(todayGaps),longestToday=longestGap(todayGaps),bestWeek=weeklyBestPause(),goal=settings.pauseGoal,hit=todayGaps.filter(value=>value>=goal).length,total=todayGaps.length;
+    const today=todaysEntries(),count=today.length,todayGaps=gapMinutes(today),avgToday=averageFromGaps(todayGaps),goal=settings.pauseGoal,hit=todayGaps.filter(value=>value>=goal).length,total=todayGaps.length,over=count>settings.limit;
     els.analysisToday.textContent=count;
-    els.analysisRemaining.textContent=Math.max(settings.limit-count,0);
-    els.analysisGapToday.textContent=formatGap(avgToday);
-    els.analysisLongestToday.textContent=formatGap(longestToday);els.analysisBestWeek.textContent=formatGap(bestWeek);
+    els.analysisRemaining.textContent=over?`+${count-settings.limit}`:Math.max(settings.limit-count,0);
+    els.analysisRemainingLabel.textContent=over?"über dem Limit":"bis zum Limit";
+    els.analysisRemainingCard.classList.toggle("is-over-limit",over);
+    renderPeriodSummary();
     els.analysisPauseGoal.textContent=`${goal} Min. eingestellt`;
     els.analysisPauseHit.textContent=total?`${hit} / ${total}`:"–";
     els.analysisPauseCaption.textContent=total?`${total} abgeschlossene ${total===1?"Pause":"Pausen"} · Ziel ${goal} Min.`:"Noch keine abgeschlossene Pause";
@@ -450,7 +450,19 @@
     renderMonthCalendar();
   }
   function showView(view){[els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});window.scrollTo({top:0,behavior:"instant"})}
-  function addEntry(){const id=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,entry={id,time:new Date().toISOString()};entries.push(entry);entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();lastAddedId=id;render();showToast(`${formatTime(new Date(entry.time))} gespeichert`,true)}
+  function playAddAnimation(){
+    clearTimeout(addAnimationTimer);
+    els.progressWrap.classList.remove("just-added");
+    els.addButton.classList.remove("just-added");
+    void els.progressWrap.offsetWidth;
+    els.progressWrap.classList.add("just-added");
+    els.addButton.classList.add("just-added");
+    addAnimationTimer=setTimeout(()=>{
+      els.progressWrap.classList.remove("just-added");
+      els.addButton.classList.remove("just-added");
+    },950);
+  }
+  function addEntry(){const id=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,entry={id,time:new Date().toISOString()};entries.push(entry);entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();lastAddedId=id;render();playAddAnimation();showToast(`${formatTime(new Date(entry.time))} gespeichert`,true)}
   function undoLastAdd(){if(!lastAddedId)return;entries=entries.filter(x=>x.id!==lastAddedId);saveEntries();lastAddedId=null;render();showToast("Eintrag entfernt",false)}
   function hideToast(){clearTimeout(toastTimer);els.toast.classList.remove("is-visible");els.toast.setAttribute("aria-hidden","true")}
   function showToast(text,undo){hideToast();els.toastText.textContent=text;els.undoButton.hidden=!undo;els.toast.classList.add("is-visible");els.toast.setAttribute("aria-hidden","false");toastTimer=setTimeout(hideToast,3600)}
@@ -487,6 +499,7 @@
       saveSettings();
       analysisWeekOffset=0;
       analysisMonthOffset=0;
+      analysisSummaryMode="week";
       applyTheme();
       closeSheets();
       render();
@@ -499,12 +512,21 @@
   }
   els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));
-  els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);settings.limitChangedAt=Date.now();saveSettings();render()});
-  els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);settings.limitChangedAt=Date.now();saveSettings();render()});
-  els.smartLimitApply.addEventListener("click",()=>{const suggestion=smartLimitSuggestion();if(!suggestion)return;settings.limit=suggestion;settings.limitChangedAt=Date.now();saveSettings();render()});
+  els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.smartLimitLater.addEventListener("click",()=>{settings.limitSuggestionSnoozedUntil=snoozeUntil(7);saveSettings();render()});
+  els.smartLimitApply.addEventListener("click",()=>{const suggestion=smartLimitSuggestion();if(!suggestion)return;settings.limit=suggestion;settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
   els.closeLimitSheet.addEventListener("click",()=>closeSheets());
-  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render()});els.closePauseSheet.addEventListener("click",()=>closeSheets());
+  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));
+  els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});
+  els.smartPauseLater.addEventListener("click",()=>{settings.pauseSuggestionSnoozedUntil=snoozeUntil(7);saveSettings();render()});
+  els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
+  els.summaryWeekButton.addEventListener("click",()=>{analysisSummaryMode="week";renderPeriodSummary()});
+  els.summaryMonthButton.addEventListener("click",()=>{analysisSummaryMode="month";renderPeriodSummary()});
   els.weekPrev.addEventListener("click",()=>{analysisWeekOffset--;renderWeekOverview()});
   els.weekNext.addEventListener("click",()=>{if(analysisWeekOffset<0){analysisWeekOffset++;renderWeekOverview()}});
   els.monthPrev.addEventListener("click",()=>{analysisMonthOffset--;renderMonthCalendar()});
@@ -516,6 +538,6 @@
   els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
   els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
-  setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();els.analysisComparisonText.textContent=comparisonCopy(t.length);renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+  setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
