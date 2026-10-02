@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v14-pause-focus";
+const CACHE = "ember-violet-v15-home-pause-card";
 const SHELL = [
   "./",
   "./index.html",
