@@ -182,16 +182,27 @@
           <div class="pause-analysis-caption" id="analysisPauseCaption">Noch keine abgeschlossene Pause heute</div>
         </div>
 
-        <div class="patterns-card">
-          <div class="chart-title"><strong>Automatische Muster</strong><span>Nur aus deinen Eintragszeiten erkannt</span></div>
-          <div class="pattern-list" id="patternList"></div>
+        <div class="chart-card heatmap-card">
+          <div class="chart-title"><strong>Rauchmuster</strong><span>Wann deine Einträge am häufigsten liegen · letzte 30 Tage</span></div>
+          <div class="time-heatmap" id="timeHeatmap" aria-label="Rauchmuster nach Uhrzeit"></div>
+          <div class="time-heatmap-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          <div class="heatmap-peak" id="heatmapPeak">Noch zu wenig Daten</div>
         </div>
 
-        <div class="chart-card">
-          <div class="chart-title"><strong>Tagesverlauf</strong><span>Deine Einträge nach Uhrzeit</span></div>
-          <div class="timeline-plot" id="timelinePlot"></div>
-          <div class="timeline-axis"><span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span></div>
-          <div class="timeline-empty" id="timelineEmpty">Heute noch keine Einträge.</div>
+        <div class="chart-card compact-day-card">
+          <div class="chart-title"><strong>Tagesverlauf</strong><span>Heute auf einen Blick</span></div>
+          <div class="analysis-mini-timeline" id="analysisDayTimeline" aria-hidden="true"></div>
+          <div class="analysis-mini-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          <div class="analysis-mini-empty" id="analysisDayEmpty">Heute noch keine Einträge.</div>
+        </div>
+
+        <div class="chart-card month-card">
+          <div class="month-card-head">
+            <div class="chart-title"><strong>Monat</strong><span id="monthCalendarTitle">–</span></div>
+            <span class="month-total" id="monthTotal">0 Einträge</span>
+          </div>
+          <div class="month-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+          <div class="month-calendar" id="monthCalendar" aria-label="Monatsübersicht"></div>
         </div>
 
         <div class="chart-card"><div class="chart-title"><strong>Letzte 7 Tage</strong><span>Zigaretten pro Tag</span></div><div class="week-chart" id="weekChart"></div></div>
