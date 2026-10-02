@@ -231,30 +231,37 @@
     }
     renderPatterns();
 
-    const groups=new Map();
+    const timelineGroups=[];
+    const TIMELINE_CLUSTER_GAP=28;
     today.forEach(entry=>{
-      const d=new Date(entry.time),key=`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-      if(!groups.has(key))groups.set(key,{date:d,count:0});
-      groups.get(key).count++;
+      const d=new Date(entry.time),minutes=d.getHours()*60+d.getMinutes(),last=timelineGroups[timelineGroups.length-1];
+      if(last&&minutes-last.lastMinute<=TIMELINE_CLUSTER_GAP){
+        last.entries.push(entry);
+        last.lastMinute=minutes;
+      }else{
+        timelineGroups.push({entries:[entry],firstMinute:minutes,lastMinute:minutes});
+      }
     });
     els.timelinePlot.innerHTML="";
-    const showExactTimes=groups.size<=8;
-    let timelineIndex=0;
-    groups.forEach(group=>{
-      const d=group.date,minutes=d.getHours()*60+d.getMinutes(),position=clamp(minutes/1440*100,1,99),marker=document.createElement("span"),time=formatTime(d);
-      marker.className=`timeline-event ${timelineIndex%2?"lane-b":"lane-a"}${showExactTimes?"":" dense"}${group.count>1?" multiple":""}`;
+    const showExactTimes=timelineGroups.length<=8;
+    timelineGroups.forEach((group,index)=>{
+      const first=new Date(group.entries[0].time),last=new Date(group.entries[group.entries.length-1].time);
+      const center=(group.firstMinute+group.lastMinute)/2,position=clamp(center/1440*100,1.5,98.5),marker=document.createElement("span");
+      const isCluster=group.entries.length>1;
+      const firstTime=formatTime(first),lastTime=formatTime(last);
+      const label=isCluster&&firstTime!==lastTime?`${firstTime}–${lastTime}`:firstTime;
+      marker.className=`timeline-event ${index%2?"lane-b":"lane-a"}${showExactTimes?"":" dense"}${isCluster?" multiple cluster":""}`;
       marker.style.left=`${position}%`;
-      marker.setAttribute("aria-label",group.count>1?`${group.count} Einträge um ${time}`:`Eintrag um ${time}`);
-      marker.title=group.count>1?`${group.count}× · ${time}`:time;
+      marker.setAttribute("aria-label",isCluster?`${group.entries.length} Einträge zwischen ${firstTime} und ${lastTime}`:`Eintrag um ${firstTime}`);
+      marker.title=isCluster?`${group.entries.length}× · ${label}`:label;
       const dot=document.createElement("span");
       dot.className="timeline-event-dot";
-      dot.textContent=group.count>1?`${group.count}×`:"";
-      const label=document.createElement("span");
-      label.className="timeline-event-time";
-      label.textContent=time;
-      marker.append(dot,label);
+      dot.textContent=isCluster?`${group.entries.length}×`:"";
+      const timeLabel=document.createElement("span");
+      timeLabel.className="timeline-event-time";
+      timeLabel.textContent=label;
+      marker.append(dot,timeLabel);
       els.timelinePlot.appendChild(marker);
-      timelineIndex++;
     });
     els.timelineEmpty.hidden=today.length>0;
 
