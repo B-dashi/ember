@@ -61,8 +61,8 @@
   function entriesForDay(start){const d=new Date(start),from=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),next=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();return entries.filter(item=>{const t=Date.parse(item.time);return t>=from&&t<next})}
   function manualCountForDay(date){const value=manualDailyCounts[localDateKey(new Date(date))];return Number.isFinite(Number(value))?Number(value):null}
   function effectiveDayCount(date){
-    const manual=manualCountForDay(date);
-    return manual!=null?manual:entriesForDay(dayStart(new Date(date))).length;
+    const manual=manualCountForDay(date),exact=entriesForDay(dayStart(new Date(date))).length;
+    return manual!=null?Math.max(manual,exact):exact;
   }
   function hasDayCount(date){return manualCountForDay(date)!=null||entriesForDay(dayStart(new Date(date))).length>0}
 
