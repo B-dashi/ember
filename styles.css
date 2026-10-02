@@ -305,3 +305,377 @@ button,input{font:inherit}button{border:0;color:inherit}.app-shell{width:min(100
   .ring-pause-copy strong{font-size:13px}
   .ring-pause-copy>span{max-width:96px}
 }
+
+/* Ember v20 polish: interaction, pause layout, timeline, toast, dark palette */
+
+/* Prevent accidental iPhone zoom on fast taps while keeping the app touch-friendly. */
+button,
+input,
+select,
+textarea{
+  touch-action:manipulation;
+}
+input,
+select,
+textarea{
+  font-size:16px;
+}
+
+/* Give the content inside the large ring proper breathing room. */
+.progress-center{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transform:translateY(-3px);
+}
+.cigarette-mark{
+  margin:0 auto 0;
+}
+.count-line{
+  justify-content:center;
+}
+.limit-label{
+  margin-top:4px;
+}
+.ring-pause{
+  position:static;
+  left:auto;
+  bottom:auto;
+  transform:none;
+  width:150px;
+  margin:13px auto 0;
+  padding:10px 0 0;
+  grid-template-columns:36px minmax(0,1fr);
+  gap:9px;
+}
+.pause-dial,
+.pause-dial-ring{
+  width:36px;
+  height:36px;
+}
+.ring-pause-copy{
+  text-align:left;
+}
+.ring-pause-copy>span{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media(max-width:390px){
+  .progress-center{transform:translateY(-2px)}
+  .ring-pause{
+    width:146px;
+    margin-top:12px;
+    grid-template-columns:34px minmax(0,1fr);
+    gap:8px;
+  }
+  .pause-dial,
+  .pause-dial-ring{
+    width:34px;
+    height:34px;
+  }
+}
+
+/* Last-cigarette card should not compete with the hero metric. */
+#lastCard .info-copy strong{
+  font-size:22px;
+  letter-spacing:-.025em;
+}
+@media(max-width:390px){
+  #lastCard .info-copy strong{font-size:21px}
+}
+
+/* Analysis pause block: calm hierarchy, theme accent while waiting, green only on success. */
+.current-pause-row{
+  align-items:flex-end;
+}
+.current-pause-row strong{
+  color:var(--ink);
+  font-size:22px;
+  font-weight:760;
+}
+.current-pause-row strong[data-state="waiting"],
+.current-pause-row strong[data-state="close"]{
+  color:var(--ink);
+}
+.current-pause-row strong[data-state="reached"]{
+  color:#3f815b;
+}
+.current-pause-caption{
+  margin-top:5px;
+  color:var(--muted);
+}
+.current-pause-track{
+  height:7px;
+  margin:11px 0 16px;
+  background:color-mix(in srgb,var(--muted) 12%,transparent);
+}
+.current-pause-track span[data-state="waiting"]{
+  background:linear-gradient(90deg,var(--accent-2),var(--accent));
+}
+.current-pause-track span[data-state="close"]{
+  background:var(--accent);
+  box-shadow:0 0 10px color-mix(in srgb,var(--accent) 24%,transparent);
+}
+.current-pause-track span[data-state="reached"]{
+  background:#5d9d72;
+}
+.pause-analysis-main{
+  align-items:center;
+}
+.pause-analysis-main strong{
+  font-size:23px;
+}
+.pause-analysis-main>span{
+  line-height:1.3;
+}
+
+/* More useful 24-hour timeline: 3-hour grid + exact labels while there is room. */
+.timeline-plot{
+  height:92px;
+  margin-top:18px;
+  overflow:visible;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(12.5% - 1px),
+      color-mix(in srgb,var(--muted) 12%,transparent) calc(12.5% - 1px),
+      color-mix(in srgb,var(--muted) 12%,transparent) 12.5%
+    ),
+    linear-gradient(90deg,
+      color-mix(in srgb,var(--accent-soft) 36%,transparent),
+      color-mix(in srgb,var(--accent-soft) 68%,transparent)
+    );
+}
+.timeline-plot::before{
+  left:8px;
+  right:8px;
+  background:color-mix(in srgb,var(--muted) 25%,transparent);
+}
+.timeline-event{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:0;
+  z-index:2;
+}
+.timeline-event-dot{
+  position:absolute;
+  left:0;
+  top:50%;
+  width:12px;
+  height:12px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:var(--accent);
+  border:2px solid color-mix(in srgb,var(--card) 88%,white 12%);
+  box-shadow:0 0 0 3px var(--accent-soft);
+  display:grid;
+  place-items:center;
+  font-size:9px;
+  font-weight:800;
+  color:white;
+  white-space:nowrap;
+}
+.timeline-event.multiple .timeline-event-dot{
+  width:28px;
+  height:20px;
+  border-radius:999px;
+}
+.timeline-event-time{
+  position:absolute;
+  left:0;
+  transform:translateX(-50%);
+  min-width:34px;
+  padding:2px 4px;
+  border-radius:7px;
+  background:color-mix(in srgb,var(--card) 88%,transparent);
+  color:var(--muted);
+  font-size:9.5px;
+  font-weight:700;
+  line-height:1.15;
+  text-align:center;
+  white-space:nowrap;
+}
+.timeline-event.lane-a .timeline-event-time{top:8px}
+.timeline-event.lane-b .timeline-event-time{bottom:8px}
+.timeline-event.dense .timeline-event-time{display:none}
+.timeline-axis{
+  grid-template-columns:repeat(9,1fr);
+  margin-top:8px;
+  font-size:10px;
+}
+.timeline-axis span{
+  text-align:center!important;
+}
+.timeline-axis span:first-child{text-align:left!important}
+.timeline-axis span:last-child{text-align:right!important}
+
+/* Refined transient feedback: compact, theme-native and never visually dominant. */
+.toast{
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  width:auto;
+  min-width:min(260px,calc(100% - 40px));
+  max-width:calc(100% - 40px);
+  padding:11px 12px 11px 14px;
+  border-radius:16px;
+  background:color-mix(in srgb,var(--card) 94%,var(--page) 6%);
+  color:var(--ink);
+  border:1px solid color-mix(in srgb,var(--accent) 18%,var(--card-border));
+  box-shadow:0 12px 30px color-mix(in srgb,var(--ink) 15%,transparent);
+  gap:14px;
+  font-size:13.5px;
+  font-weight:650;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.toast::before{
+  content:"✓";
+  flex:0 0 24px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:var(--accent-soft);
+  color:var(--accent);
+  font-size:13px;
+  font-weight:900;
+}
+.toast #toastText{
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.toast button{
+  color:var(--accent);
+  padding:6px 7px;
+  border-radius:9px;
+  font-size:13px;
+}
+
+/* Sheets now use the same visual material as the rest of Ember. */
+.modal-sheet{
+  background:color-mix(in srgb,var(--page) 94%,white 6%);
+  border:1px solid color-mix(in srgb,var(--accent) 8%,var(--card-border));
+}
+.toggle-row,
+.time-row,
+.theme-list button,
+.sheet-row{
+  background:var(--card);
+  border:1px solid var(--card-border);
+}
+#editSheet .time-row{
+  min-height:62px;
+}
+#editSheet .time-row input{
+  min-height:40px;
+  padding:8px 12px;
+  background:var(--accent-soft);
+  color:var(--ink);
+}
+#editSheet .sheet-actions{
+  margin-top:4px;
+}
+#editSheet .danger-action,
+#editSheet .primary-action{
+  min-height:50px;
+}
+
+/* Dark mode: neutral graphite instead of brown, with muted antique-gold accents. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --accent:#b69243;
+  --accent-2:#d3b15b;
+  --accent-soft:rgba(182,146,67,.14);
+  --ink:#f1efe9;
+  --muted:#99958c;
+  --page:#0a0b0d;
+  --card:rgba(20,21,24,.94);
+  --card-border:rgba(211,177,91,.11);
+  --ring-track:rgba(255,255,255,.13);
+  --hero-ink:#f5f2e9;
+  --hero-muted:rgba(245,242,233,.68);
+  --shadow:0 14px 34px rgba(0,0,0,.34);
+  --hero-image:linear-gradient(160deg,#08090b 0%,#111319 52%,#090a0c 100%);
+  --hero-overlay:linear-gradient(180deg,rgba(0,0,0,.01),rgba(10,11,13,.08));
+  --pause-track:rgba(245,242,233,.16);
+  --pause-active:#d3b15b;
+  --pause-close:#e1c66f;
+  --pause-success:#78ad89;
+}
+:root[data-theme="dark"] .add-button{
+  color:#111214;
+  border-color:rgba(226,198,124,.19);
+  background:linear-gradient(135deg,#d7ba69,#a67d31);
+  box-shadow:0 10px 26px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.18);
+}
+:root[data-theme="dark"] .add-plus{
+  background:#ece4cf;
+  color:#87651f;
+}
+:root[data-theme="dark"] .round-button{
+  background:rgba(255,255,255,.045);
+  border-color:rgba(211,177,91,.20);
+}
+:root[data-theme="dark"] .info-card,
+:root[data-theme="dark"] .entries-card,
+:root[data-theme="dark"] .settings-tile,
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .chart-card,
+:root[data-theme="dark"] .pause-analysis-card,
+:root[data-theme="dark"] .analysis-section-card,
+:root[data-theme="dark"] .patterns-card{
+  background:rgba(19,20,23,.94);
+  border-color:rgba(211,177,91,.10);
+}
+:root[data-theme="dark"] .card-icon,
+:root[data-theme="dark"] .tile-icon{
+  background:rgba(182,146,67,.13);
+  color:#c5a14f;
+}
+:root[data-theme="dark"] .analysis-overview,
+:root[data-theme="dark"] .pattern-row,
+:root[data-theme="dark"] .distance-grid>div{
+  background:rgba(182,146,67,.075);
+}
+:root[data-theme="dark"] .modal-sheet{
+  background:rgba(14,15,18,.985);
+  border-color:rgba(211,177,91,.10);
+}
+:root[data-theme="dark"] .toggle-row,
+:root[data-theme="dark"] .time-row,
+:root[data-theme="dark"] .theme-list button,
+:root[data-theme="dark"] .sheet-row{
+  background:#17181c;
+  border-color:rgba(211,177,91,.08);
+}
+:root[data-theme="dark"] .timeline-plot{
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(12.5% - 1px),
+      rgba(211,177,91,.08) calc(12.5% - 1px),
+      rgba(211,177,91,.08) 12.5%
+    ),
+    linear-gradient(90deg,rgba(182,146,67,.035),rgba(182,146,67,.08));
+  border-color:rgba(211,177,91,.09);
+}
+:root[data-theme="dark"] .timeline-event-dot{
+  border-color:#15161a;
+}
+:root[data-theme="dark"] .timeline-event-time{
+  background:rgba(22,23,27,.92);
+}
+:root[data-theme="dark"] .toast{
+  background:rgba(19,20,23,.96);
+  border-color:rgba(211,177,91,.16);
+  box-shadow:0 14px 36px rgba(0,0,0,.42);
+}
