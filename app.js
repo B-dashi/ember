@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id);
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
-    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseGoal:$("homePauseGoal"),homePauseHint:$("homePauseHint"),homePauseFill:$("homePauseFill"),progressCircle:$("progressCircle"),
+    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),homePauseFill:$("homePauseFill"),progressCircle:$("progressCircle"),
     addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),emptyState:$("emptyState"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
@@ -49,10 +49,15 @@
     return{state:"reached",elapsed,remaining:0,progress:1,text:`${elapsed} Min.`,hint:extra>0?`Ziel erreicht · +${extra} Min.`:"Pause-Ziel erreicht ✓"};
   }
   function renderPauseStatus(){
-    const status=pauseStatusData();
-    els.homePauseGoal.textContent=`${settings.pauseGoal} Min. Ziel`;
-    els.homePauseValue.textContent=status.text;
-    els.homePauseHint.textContent=status.hint;
+    const status=pauseStatusData(),goal=settings.pauseGoal;
+    if(status.state==="empty"){
+      els.homePauseValue.textContent="–";
+      els.homePauseHint.textContent=`Pause-Ziel ${goal} Min.`;
+    }else{
+      const shownElapsed=status.elapsed<1?0:status.elapsed;
+      els.homePauseValue.textContent=`${shownElapsed} / ${goal} Min.`;
+      els.homePauseHint.textContent=status.elapsed<1?"Gerade gestartet":status.hint;
+    }
     els.pauseCardHome.dataset.state=status.state;
     els.homePauseFill.dataset.state=status.state;
     els.homePauseFill.style.width=`${status.state==="empty"?0:Math.max(4,Math.round(status.progress*100))}%`;
