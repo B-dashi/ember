@@ -12,21 +12,32 @@
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
-    limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),closeLimitSheet:$("closeLimitSheet"),
+    limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
     pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
-    exportDataButton:$("exportDataButton"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
+    exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
     analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
-  let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null, analysisWeekOffset=0, analysisMonthOffset=0;
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+  let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null, analysisWeekOffset=0, analysisMonthOffset=0;
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
   function relativeTime(date){const m=Math.max(0,Math.floor((Date.now()-date.getTime())/60000));if(m<1)return"gerade eben";if(m===1)return"vor 1 Min.";if(m<60)return`vor ${m} Min.`;const h=Math.floor(m/60);if(h===1)return"vor 1 Std.";if(h<24)return`vor ${h} Std.`;return"früher"}
   function loadEntries(){try{const raw=JSON.parse(localStorage.getItem(STORAGE_ENTRIES)||"[]");return Array.isArray(raw)?raw.filter(x=>x&&typeof x.id==="string"&&typeof x.time==="string"&&!Number.isNaN(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)):[]}catch{return[]}}
-  function loadSettings(){const fallback={limit:20,theme:"violet",pauseGoal:50,smartPauseSuggestions:true,smartPauseUserSet:false};try{const raw=JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}");const migrated=THEME_MIGRATION[raw.theme]||raw.theme;const userSet=Boolean(raw.smartPauseUserSet);return{limit:Number.isFinite(Number(raw.limit))?clamp(Math.round(Number(raw.limit)),1,99):20,theme:THEMES[migrated]?migrated:"violet",pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,smartPauseSuggestions:userSet?Boolean(raw.smartPauseSuggestions):true,smartPauseUserSet:userSet}}catch{return fallback}}
+  function normalizeSettings(raw={}){
+    const migrated=THEME_MIGRATION[raw.theme]||raw.theme,userSet=Boolean(raw.smartPauseUserSet);
+    return{
+      limit:Number.isFinite(Number(raw.limit))?clamp(Math.round(Number(raw.limit)),1,99):20,
+      theme:THEMES[migrated]?migrated:"violet",
+      pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,
+      smartPauseSuggestions:userSet?Boolean(raw.smartPauseSuggestions):true,
+      smartPauseUserSet:userSet,
+      limitChangedAt:Number.isFinite(Number(raw.limitChangedAt))?Math.max(0,Number(raw.limitChangedAt)):0
+    };
+  }
+  function loadSettings(){try{return normalizeSettings(JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}"))}catch{return normalizeSettings()}}
   const saveEntries=()=>localStorage.setItem(STORAGE_ENTRIES,JSON.stringify(entries));
   const saveSettings=()=>localStorage.setItem(STORAGE_SETTINGS,JSON.stringify(settings));
   function entriesForDay(start){const d=new Date(start),from=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),next=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();return entries.filter(item=>{const t=Date.parse(item.time);return t>=from&&t<next})}
@@ -248,6 +259,26 @@
     els.smartPauseSuggestion.hidden=!suggestion;
     if(suggestion)els.smartPauseText.textContent=`${suggestion} Min. ausprobieren?`;
   }
+  function smartLimitSuggestion(){
+    const limit=settings.limit;
+    if(limit<=1)return null;
+    const changedDay=settings.limitChangedAt?dayStart(new Date(settings.limitChangedAt)):0;
+    const today=new Date();
+    for(let i=1;i<=5;i++){
+      const date=new Date(today.getFullYear(),today.getMonth(),today.getDate()-i),start=dayStart(date);
+      if(changedDay&&start<=changedDay)return null;
+      const count=entriesForDay(start).length;
+      if(count===0||count>limit)return null;
+    }
+    return limit-1;
+  }
+  function renderSmartLimitSuggestion(){
+    const suggestion=smartLimitSuggestion();
+    els.smartLimitSuggestion.hidden=!suggestion;
+    if(!suggestion)return;
+    els.smartLimitText.textContent="5 Tage in Folge im Limit.";
+    els.smartLimitHint.textContent=`Tageslimit auf ${suggestion} reduzieren?`;
+  }
   function dayPart(hour){if(hour<5)return"Nacht";if(hour<9)return"Morgen";if(hour<12)return"Vormittag";if(hour<17)return"Nachmittag";if(hour<22)return"Abend";return"Nacht"}
   function dayPartPhrase(name){return name==="Nacht"?"in der Nacht":`am ${name.toLowerCase()}`}
   function renderPatterns(){
@@ -289,6 +320,7 @@
     els.progressCircle.style.strokeDashoffset=String(100-progress*100);
     els.limitTileValue.textContent=`${limit} Zigaretten`;
     els.settingsLimitValue.textContent=limit;
+    renderSmartLimitSuggestion();
     els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;
     els.settingsPauseValue.textContent=settings.pauseGoal;
     renderSmartPauseSuggestion();
@@ -352,15 +384,60 @@
   function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();setTimeout(()=>showToast("Eintrag gelöscht",false),240)}
   function setTheme(theme){if(!THEMES[theme])return;settings.theme=theme;saveSettings();applyTheme();render()}
   function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+  function sanitizeImportedEntries(raw){
+    if(!Array.isArray(raw))throw new Error("Keine gültigen Einträge gefunden.");
+    const seen=new Set(),clean=[];
+    raw.forEach((item,index)=>{
+      if(!item||typeof item.time!=="string"||Number.isNaN(Date.parse(item.time)))return;
+      let id=typeof item.id==="string"&&item.id.trim()?item.id.trim():`import-${Date.parse(item.time)}-${index}`;
+      while(seen.has(id))id=`${id}-${index}`;
+      seen.add(id);
+      clean.push({id,time:new Date(item.time).toISOString()});
+    });
+    return clean.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+  }
+  async function importData(file){
+    if(!file)return;
+    try{
+      const raw=JSON.parse(await file.text());
+      if(!raw||typeof raw!=="object"||!Array.isArray(raw.entries))throw new Error("Das ist kein gültiges Ember-Backup.");
+      const importedEntries=sanitizeImportedEntries(raw.entries),importedSettings=normalizeSettings(raw.settings||{});
+      const ok=confirm(`Backup mit ${importedEntries.length} ${importedEntries.length===1?"Eintrag":"Einträgen"} importieren? Deine aktuellen Daten werden ersetzt.`);
+      if(!ok)return;
+      entries=importedEntries;
+      settings=importedSettings;
+      saveEntries();
+      saveSettings();
+      analysisWeekOffset=0;
+      analysisMonthOffset=0;
+      applyTheme();
+      closeSheets();
+      render();
+      setTimeout(()=>showToast("Backup importiert",false),240);
+    }catch(error){
+      alert(error&&error.message?error.message:"Import fehlgeschlagen.");
+    }finally{
+      els.importDataInput.value="";
+    }
+  }
   els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
-  els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);saveSettings();render()});els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);saveSettings();render()});els.closeLimitSheet.addEventListener("click",()=>closeSheets());
+  els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));
+  els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);settings.limitChangedAt=Date.now();saveSettings();render()});
+  els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);settings.limitChangedAt=Date.now();saveSettings();render()});
+  els.smartLimitApply.addEventListener("click",()=>{const suggestion=smartLimitSuggestion();if(!suggestion)return;settings.limit=suggestion;settings.limitChangedAt=Date.now();saveSettings();render()});
+  els.closeLimitSheet.addEventListener("click",()=>closeSheets());
   els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render()});els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
   els.weekPrev.addEventListener("click",()=>{analysisWeekOffset--;renderWeekOverview()});
   els.weekNext.addEventListener("click",()=>{if(analysisWeekOffset<0){analysisWeekOffset++;renderWeekOverview()}});
   els.monthPrev.addEventListener("click",()=>{analysisMonthOffset--;renderMonthCalendar()});
   els.monthNext.addEventListener("click",()=>{if(analysisMonthOffset<0){analysisMonthOffset++;renderMonthCalendar()}});
-  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
+  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));
+  els.exportDataButton.addEventListener("click",exportData);
+  els.importDataButton.addEventListener("click",()=>{els.importDataInput.value="";els.importDataInput.click()});
+  els.importDataInput.addEventListener("change",()=>importData(els.importDataInput.files&&els.importDataInput.files[0]));
+  els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
+  els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();els.analysisComparisonText.textContent=comparisonCopy(t.length);renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
