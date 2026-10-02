@@ -82,7 +82,7 @@
     }else if(count===1){
       els.daySummaryFooter.textContent=`Letzter Eintrag ${formatTime(new Date(last.time))}`;
     }else{
-      els.daySummaryFooter.textContent=`Letzter ${formatTime(new Date(last.time))} · Beste Pause ${formatGap(best))}`;
+      els.daySummaryFooter.textContent=`Letzter ${formatTime(new Date(last.time))} · Beste Pause ${formatGap(best)}`;
     }
   }
   function renderTodaySheet(){
