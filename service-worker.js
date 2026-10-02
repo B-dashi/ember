@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v32-swipe-backfill-fix";
+const CACHE = "ember-violet-v32-swipe-manual-badge";
 const SHELL = [
   "./",
   "./index.html",
