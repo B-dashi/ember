@@ -3146,3 +3146,120 @@ body{
     height:36px;
   }
 }
+
+/* Ember v38: full-surface swiping, lower headers, over-limit warning, editable backfill */
+
+/* Put subpage title + navigation slightly lower in the hero. */
+.pager-subpage-header{
+  transform:translateY(26px);
+}
+.home-header{
+  transform:translateY(14px);
+}
+
+/* Make all non-form content a valid horizontal swipe surface. */
+.pager-track,
+.pager-track>.view,
+.pager-track>.view *,
+.pager-track button,
+.pager-track .day-summary-card,
+.pager-track .settings-tile,
+.pager-track .stat-card,
+.pager-track .chart-card,
+.pager-track .analysis-section-card,
+.pager-track .pause-analysis-card{
+  touch-action:pan-y;
+}
+.pager-track input,
+.pager-track select,
+.pager-track textarea{
+  touch-action:manipulation;
+}
+
+/* Over-limit confirmation: warm warning, still consistent with Ember. */
+.pause-confirm-sheet.is-over-limit{
+  --limit-warn:#c95f52;
+  --limit-warn-soft:color-mix(in srgb,var(--limit-warn) 12%,var(--card));
+}
+.pause-confirm-sheet.is-over-limit .pause-confirm-kicker{
+  color:var(--limit-warn);
+}
+.pause-confirm-sheet.is-over-limit .pause-confirm-time{
+  color:var(--limit-warn);
+}
+.pause-confirm-sheet.is-over-limit .pause-confirm-track{
+  background:color-mix(in srgb,var(--limit-warn) 11%,transparent);
+}
+.pause-confirm-sheet.is-over-limit .pause-confirm-track span{
+  background:linear-gradient(90deg,#e58a7e,var(--limit-warn));
+  box-shadow:0 0 14px color-mix(in srgb,var(--limit-warn) 18%,transparent);
+}
+.pause-confirm-sheet.is-over-limit .pause-wait-button{
+  background:color-mix(in srgb,var(--muted) 12%,var(--card));
+  color:var(--ink);
+  box-shadow:none;
+}
+.pause-confirm-sheet.is-over-limit .pause-add-anyway-button{
+  background:var(--limit-warn);
+  color:#fff;
+}
+.pause-confirm-sheet.is-over-limit p{
+  color:color-mix(in srgb,var(--limit-warn) 62%,var(--muted));
+}
+
+/* Backfill amount can now be tapped and typed directly. */
+.backfill-count-input{
+  width:88px;
+  min-width:0;
+  height:54px;
+  padding:0 8px;
+  border:0;
+  border-radius:14px;
+  background:transparent;
+  color:var(--ink);
+  text-align:center;
+  font-size:28px!important;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.04em;
+  outline:none;
+  -moz-appearance:textfield;
+}
+.backfill-count-input::-webkit-outer-spin-button,
+.backfill-count-input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.backfill-count-input:focus{
+  background:var(--accent-soft);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+
+/* Slightly improve breathing room under the lowered subpage header. */
+.hero-subpage{
+  height:238px;
+}
+.settings-content,
+.analysis-content{
+  margin-top:-24px;
+}
+
+:root[data-theme="dark"] .pause-confirm-sheet.is-over-limit{
+  --limit-warn:#d7786d;
+}
+:root[data-theme="dark"] .pause-confirm-sheet.is-over-limit .pause-wait-button{
+  background:rgba(255,255,255,.055);
+  color:var(--ink);
+}
+
+@media(max-width:390px){
+  .pager-subpage-header{
+    transform:translateY(23px);
+  }
+  .home-header{
+    transform:translateY(12px);
+  }
+  .hero-subpage{
+    height:234px;
+  }
+}
