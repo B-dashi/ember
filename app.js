@@ -216,7 +216,7 @@
       if(!known&&!future)button.classList.add("is-untracked");
       if(future){button.classList.add("is-future");button.disabled=true}
       button.innerHTML=known
-        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${manual?"nachgetragen":count===1?"Eintrag":"Einträge"}</small>`
+        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${manual?"Nachtrag":count===1?"Eintrag":"Einträge"}</small>`
         :`<span>${weekday}</span><b>${date.getDate()}</b><strong>–</strong><small>${future?"":"Keine Daten"}</small>`;
       button.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:known?`${formatDate(date)}: ${count} Zigaretten${manual?", nachgetragen":""}`:`${formatDate(date)}: keine Daten`);
       if(!future)button.addEventListener("click",()=>openDaySheet(date));
@@ -330,22 +330,20 @@
     }
     manualDailyCounts[localDateKey(date)]=clamp(Math.round(backfillCountValue),0,99);
     saveManualCounts();
-    const returnDate=activeDaySheetDate&&isSameLocalDay(activeDaySheetDate,date)?new Date(activeDaySheetDate):null;
     closeSheets();
+    activeDaySheetDate=null;
     render();
     setTimeout(()=>showToast("Tag nachgetragen",false),240);
-    if(returnDate)setTimeout(()=>openDaySheet(returnDate),320);
   }
   function deleteBackfill(){
     const date=parseDateInput(els.backfillDate.value);
     if(!date)return;
     delete manualDailyCounts[localDateKey(date)];
     saveManualCounts();
-    const returnDate=activeDaySheetDate&&isSameLocalDay(activeDaySheetDate,date)?new Date(activeDaySheetDate):null;
     closeSheets();
+    activeDaySheetDate=null;
     render();
     setTimeout(()=>showToast("Nachtrag entfernt",false),240);
-    if(returnDate)setTimeout(()=>openDaySheet(returnDate),320);
   }
   function formatRemaining(minutes){
     const mins=Math.max(0,Math.round(minutes));
@@ -547,6 +545,45 @@
     renderMonthCalendar();
   }
   function showView(view){[els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});window.scrollTo({top:0,behavior:"instant"})}
+  function currentView(){
+    if(!els.settingsView.hidden)return els.settingsView;
+    if(!els.analysisView.hidden)return els.analysisView;
+    return els.homeView;
+  }
+  function gestureBlockedTarget(target){
+    return Boolean(target.closest("button,input,select,textarea,.modal-sheet,.toast,.today-sheet-list"));
+  }
+  let swipeStartX=null,swipeStartY=null,swipeStartView=null,swipeFromRightEdge=false;
+  function handleTouchStart(event){
+    if(event.touches.length!==1||!els.modalBackdrop.hidden)return;
+    const touch=event.touches[0],width=window.innerWidth;
+    swipeStartX=touch.clientX;
+    swipeStartY=touch.clientY;
+    swipeStartView=currentView();
+    swipeFromRightEdge=touch.clientX>=width-28;
+    if(gestureBlockedTarget(event.target)){
+      swipeStartX=null;
+      swipeStartY=null;
+      swipeStartView=null;
+    }
+  }
+  function handleTouchEnd(event){
+    if(swipeStartX==null||swipeStartY==null||!swipeStartView)return;
+    const touch=event.changedTouches[0],dx=touch.clientX-swipeStartX,dy=touch.clientY-swipeStartY;
+    const horizontal=Math.abs(dx)>=72&&Math.abs(dx)>Math.abs(dy)*1.35;
+    if(horizontal){
+      if(swipeStartView===els.homeView&&swipeFromRightEdge&&dx<0){
+        showView(els.settingsView);
+      }else if((swipeStartView===els.settingsView||swipeStartView===els.analysisView)&&dx>0&&swipeStartX>44){
+        showView(els.homeView);
+      }
+    }
+    swipeStartX=null;
+    swipeStartY=null;
+    swipeStartView=null;
+    swipeFromRightEdge=false;
+  }
+
   function playAddAnimation(){
     clearTimeout(addAnimationTimer);
     els.progressWrap.classList.remove("just-added");
@@ -647,6 +684,8 @@
   els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];manualDailyCounts={};saveEntries();saveManualCounts();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
   els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
+  document.addEventListener("touchstart",handleTouchStart,{passive:true});
+  document.addEventListener("touchend",handleTouchEnd,{passive:true});
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();if(els.pauseConfirmSheet.getAttribute("aria-hidden")==="false"){if(!renderPauseConfirm())closeSheets()}renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
