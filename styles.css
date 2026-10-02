@@ -2928,3 +2928,119 @@ body{
     font-size:10.5px;
   }
 }
+
+/* Ember v36: transform pager for reliable iOS PWA swiping */
+.pager-track{
+  width:100%;
+  height:100%;
+  display:flex;
+  overflow:visible;
+  scroll-snap-type:none;
+  scroll-behavior:auto;
+  overscroll-behavior:none;
+  -webkit-overflow-scrolling:auto;
+  scrollbar-width:none;
+  touch-action:pan-y;
+  transform:translate3d(-100%,0,0);
+  will-change:transform;
+}
+.pager-track.is-animating{
+  transition:transform 300ms cubic-bezier(.2,.78,.22,1);
+}
+.pager-track.is-dragging{
+  transition:none!important;
+}
+.pager-track>.view{
+  flex:0 0 100%;
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-align:none;
+  scroll-snap-stop:normal;
+  -webkit-overflow-scrolling:touch;
+  background:var(--page);
+  transform:none!important;
+  opacity:1!important;
+  position:relative!important;
+  inset:auto!important;
+  will-change:auto;
+  touch-action:pan-y;
+}
+
+/* Header navigation is an affordance, not another large pill. */
+.pager-subpage-header{
+  grid-template-columns:48px 1fr 48px;
+}
+.pager-home-button{
+  width:40px;
+  min-width:40px;
+  height:40px;
+  padding:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:var(--hero-ink);
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:0 5px 16px rgba(20,18,45,.07);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.pager-home-button svg{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.85;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.pager-home-button.is-left{justify-self:start}
+.pager-home-button.is-right{justify-self:end}
+
+/* Make the page indicator quieter and keep it off the content as much as possible. */
+.page-dots{
+  bottom:calc(env(safe-area-inset-bottom) + 5px);
+  gap:1px;
+  padding:3px 5px;
+  background:color-mix(in srgb,var(--card) 68%,transparent);
+  border-color:color-mix(in srgb,var(--card-border) 70%,transparent);
+  box-shadow:0 4px 12px color-mix(in srgb,var(--ink) 5%,transparent);
+}
+.page-dot{
+  width:19px;
+  height:18px;
+}
+.page-dot::before{
+  width:4.5px;
+  height:4.5px;
+}
+.page-dot.is-active::before{
+  width:12px;
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
+
+:root[data-theme="dark"] .pager-home-button{
+  background:rgba(255,255,255,.045);
+  border-color:rgba(211,177,91,.12);
+  box-shadow:0 5px 16px rgba(0,0,0,.17);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .pager-track.is-animating{
+    transition:none;
+  }
+}
+
+@media(max-width:390px){
+  .pager-subpage-header{
+    grid-template-columns:44px 1fr 44px;
+  }
+  .pager-home-button{
+    width:38px;
+    min-width:38px;
+    height:38px;
+  }
+}
