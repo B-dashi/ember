@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v27-analysis-heatmap-month";
+const CACHE = "ember-violet-v28-period-navigation";
 const SHELL = [
   "./",
   "./index.html",
