@@ -30,7 +30,7 @@
           </button>
         </header>
 
-        <div class="progress-wrap">
+        <div class="progress-wrap" id="progressWrap">
           <svg class="progress-ring" viewBox="0 0 320 320" role="img" aria-label="Tagesfortschritt">
             <circle class="progress-track" cx="160" cy="160" r="136" pathLength="100" />
             <circle class="progress-value" id="progressCircle" cx="160" cy="160" r="136" pathLength="100" />
@@ -151,18 +151,24 @@
           <div class="stat-card"><span>Verbleibend</span><strong id="analysisRemaining">20</strong><small>bis zum Limit</small></div>
         </div>
 
-        <div class="analysis-section-card analysis-summary-card">
-          <div class="chart-title"><strong>Überblick</strong><span>Dein heutiger Verlauf auf einen Blick</span></div>
-          <div class="summary-comparison">
-            <span>Im Vergleich zu gestern</span>
-            <strong id="analysisComparisonCount">–</strong>
-            <small id="analysisComparisonText">–</small>
+        <div class="analysis-section-card period-summary-card">
+          <div class="period-summary-head">
+            <div class="chart-title"><strong>Zusammenfassung</strong><span id="periodSummaryRange">Diese Woche</span></div>
+            <div class="summary-toggle" role="group" aria-label="Zusammenfassung Zeitraum">
+              <button id="summaryWeekButton" class="is-active" type="button">Woche</button>
+              <button id="summaryMonthButton" type="button">Monat</button>
+            </div>
           </div>
-          <div class="summary-metrics summary-metrics-three">
-            <div><span>Ø Abstand</span><strong id="analysisGapToday">–</strong></div>
-            <div><span>Beste Pause</span><strong id="analysisLongestToday">–</strong></div>
-            <div><span>Beste diese Woche</span><strong id="analysisBestWeek">–</strong></div>
+          <div class="period-summary-primary">
+            <span id="periodSummaryLabel">Einträge diese Woche</span>
+            <strong id="periodSummaryTotal">0</strong>
           </div>
+          <div class="period-summary-metrics">
+            <div><span>Ø / Trackingtag</span><strong id="periodSummaryAverage">–</strong></div>
+            <div><span>Im Limit</span><strong id="periodSummaryWithinLimit">–</strong></div>
+            <div><span>Beste Pause</span><strong id="periodSummaryBestPause">–</strong></div>
+          </div>
+          <div class="period-summary-note" id="periodSummaryNote">Tage ohne Einträge werden nicht als 0 gewertet.</div>
         </div>
 
         <div class="pause-analysis-card">
@@ -187,6 +193,12 @@
           <div class="time-heatmap" id="timeHeatmap" aria-label="Rauchmuster nach Uhrzeit"></div>
           <div class="time-heatmap-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
           <div class="heatmap-peak" id="heatmapPeak">Noch zu wenig Daten</div>
+          <div class="daypart-breakdown" id="daypartBreakdown" aria-label="Verteilung nach Tageszeit">
+            <div><span>Morgen</span><strong id="daypartMorning">–</strong></div>
+            <div><span>Mittag</span><strong id="daypartNoon">–</strong></div>
+            <div><span>Nachmittag</span><strong id="daypartAfternoon">–</strong></div>
+            <div><span>Abend</span><strong id="daypartEvening">–</strong></div>
+          </div>
         </div>
 
         <div class="chart-card week-overview-card">
@@ -227,7 +239,10 @@
       <span>Vorschlag</span>
       <strong id="smartLimitText">Seit 5 Tagen im Limit.</strong>
       <small id="smartLimitHint">Tageslimit auf 19 reduzieren?</small>
-      <button id="smartLimitApply" type="button">Übernehmen</button>
+      <div class="suggestion-actions">
+        <button id="smartLimitLater" class="suggestion-later" type="button">Später</button>
+        <button id="smartLimitApply" type="button">Übernehmen</button>
+      </div>
     </div>
     <button class="primary-sheet-button" id="closeLimitSheet" type="button">Fertig</button>
   </section>
@@ -244,7 +259,10 @@
     <div class="smart-suggestion" id="smartPauseSuggestion" hidden>
       <span>Vorschlag</span>
       <strong id="smartPauseText">55 Min. ausprobieren?</strong>
-      <button id="smartPauseApply" type="button">Übernehmen</button>
+      <div class="suggestion-actions">
+        <button id="smartPauseLater" class="suggestion-later" type="button">Später</button>
+        <button id="smartPauseApply" type="button">Übernehmen</button>
+      </div>
     </div>
 
     <button class="primary-sheet-button" id="closePauseSheet" type="button">Fertig</button>
@@ -281,6 +299,15 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="daySheetTitle">Tagesübersicht</div>
     <div class="today-sheet-summary" id="todaySheetSummary">Noch keine Einträge heute.</div>
+    <div class="day-detail-grid">
+      <div><span>Einträge</span><strong id="dayDetailCount">–</strong></div>
+      <div><span>Erste</span><strong id="dayDetailFirst">–</strong></div>
+      <div><span>Ø Abstand</span><strong id="dayDetailAverage">–</strong></div>
+      <div><span>Beste Pause</span><strong id="dayDetailBest">–</strong></div>
+    </div>
+    <div class="day-detail-timeline" id="dayDetailTimeline" aria-hidden="true"></div>
+    <div class="day-detail-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+    <div class="day-detail-status" id="dayDetailStatus"></div>
     <div class="today-sheet-list" id="todaySheetList"></div>
     <button class="primary-sheet-button" id="closeTodaySheet" type="button">Fertig</button>
   </section>
