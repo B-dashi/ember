@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f6f4ff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ember" />
   <meta name="format-detection" content="telephone=no" />
   <title>Ember</title>
@@ -69,11 +69,34 @@
           <span class="chevron">›</span>
         </button>
 
-        <section class="entries-card" id="entriesCard">
-          <div class="section-head"><h2>Heute</h2><span id="entryCountLabel">0 Einträge</span></div>
-          <div class="entry-list" id="entryList"></div>
-          <div class="empty-state" id="emptyState"><p>Noch keine Zigarette gespeichert.</p></div>
-        </section>
+        <button class="day-summary-card" id="daySummaryCard" type="button" aria-label="Tagesübersicht und Einträge öffnen">
+          <span class="day-summary-head">
+            <span>
+              <strong>Tagesübersicht</strong>
+              <small id="daySummaryDate">Heute</small>
+            </span>
+            <span class="day-summary-chevron">›</span>
+          </span>
+
+          <span class="day-summary-metrics">
+            <span class="day-metric">
+              <small>Erste Zigarette</small>
+              <strong id="dayFirstEntry">–</strong>
+              <em id="dayFirstCompare" hidden></em>
+            </span>
+            <span class="day-metric">
+              <small>Einträge</small>
+              <strong id="entryCountLabel">0</strong>
+            </span>
+            <span class="day-metric">
+              <small>Beste Pause</small>
+              <strong id="dayBestPause">–</strong>
+            </span>
+          </span>
+
+          <span class="day-mini-timeline" id="dayMiniTimeline" aria-hidden="true"></span>
+          <span class="day-summary-footer" id="daySummaryFooter">Noch keine Einträge heute</span>
+        </button>
       </section>
     </section>
 
@@ -135,9 +158,10 @@
             <strong id="analysisComparisonCount">–</strong>
             <small id="analysisComparisonText">–</small>
           </div>
-          <div class="summary-metrics">
+          <div class="summary-metrics summary-metrics-three">
             <div><span>Ø Abstand</span><strong id="analysisGapToday">–</strong></div>
-            <div><span>Längste Pause</span><strong id="analysisLongestToday">–</strong></div>
+            <div><span>Beste Pause</span><strong id="analysisLongestToday">–</strong></div>
+            <div><span>Beste diese Woche</span><strong id="analysisBestWeek">–</strong></div>
           </div>
         </div>
 
@@ -224,6 +248,14 @@
     <div class="sheet-handle"></div><div class="sheet-title">Über Ember</div>
     <div class="about-box"><img src="app-icon-iphone-180x180.png" alt=""><strong>Ember</strong><span>Version 1.0</span><p>Persönlicher Rauch-Tracker für dein iPhone.</p></div>
     <button class="primary-sheet-button" id="closeAboutSheet" type="button">Fertig</button>
+  </section>
+
+  <section class="modal-sheet today-sheet" id="todaySheet" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Tagesübersicht</div>
+    <div class="today-sheet-summary" id="todaySheetSummary">Noch keine Einträge heute.</div>
+    <div class="today-sheet-list" id="todaySheetList"></div>
+    <button class="primary-sheet-button" id="closeTodaySheet" type="button">Fertig</button>
   </section>
 
   <section class="modal-sheet" id="editSheet" aria-hidden="true">
