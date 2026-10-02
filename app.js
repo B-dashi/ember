@@ -15,7 +15,7 @@
     modalBackdrop:$("modalBackdrop"),pauseConfirmSheet:$("pauseConfirmSheet"),backfillSheet:$("backfillSheet"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
     limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitLater:$("smartLimitLater"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
     pauseConfirmTime:$("pauseConfirmTime"),pauseConfirmSubtitle:$("pauseConfirmSubtitle"),pauseConfirmFill:$("pauseConfirmFill"),pauseConfirmMessage:$("pauseConfirmMessage"),pauseWaitButton:$("pauseWaitButton"),pauseAddAnywayButton:$("pauseAddAnywayButton"),pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
-    backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
+    backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillLimitHint:$("backfillLimitHint"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
     analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisRemainingCard:$("analysisRemainingCard"),analysisRemainingTitle:$("analysisRemainingTitle"),analysisRemainingLabel:$("analysisRemainingLabel"),summaryWeekButton:$("summaryWeekButton"),summaryMonthButton:$("summaryMonthButton"),periodSummaryRange:$("periodSummaryRange"),periodSummaryLabel:$("periodSummaryLabel"),periodSummaryTotal:$("periodSummaryTotal"),periodSummaryAverage:$("periodSummaryAverage"),periodSummaryWithinLimit:$("periodSummaryWithinLimit"),periodSummaryBestPause:$("periodSummaryBestPause"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),daypartMorning:$("daypartMorning"),daypartNoon:$("daypartNoon"),daypartAfternoon:$("daypartAfternoon"),daypartEvening:$("daypartEvening"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
     pageDots:$("pageDots"),analysisDot:$("analysisDot"),homeDot:$("homeDot"),settingsDot:$("settingsDot"),toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
@@ -313,8 +313,15 @@
     const manual=manualCountForDay(date),exact=entriesForDay(dayStart(date)).length;
     backfillCountValue=manual!=null?manual:exact;
     els.backfillCount.value=String(backfillCountValue);
+    renderBackfillLimitHint();
     els.deleteBackfillButton.hidden=manual==null;
   }
+  function renderBackfillLimitHint(){
+    const over=Math.max(0,backfillCountValue-settings.limit);
+    els.backfillLimitHint.hidden=over<=0;
+    els.backfillLimitHint.textContent=over>0?`${over} über Limit`:"";
+  }
+
   function openBackfillSheet(date=null){
     const yesterday=addDays(new Date(),-1),chosen=date&&dayStart(date)<dayStart()?new Date(date):yesterday;
     els.backfillDate.max=dateInputValue(yesterday);
@@ -784,22 +791,26 @@
   }
   els.addButton.addEventListener("click",requestAddEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.analysisDot.addEventListener("click",()=>showView(els.analysisView));els.homeDot.addEventListener("click",()=>showView(els.homeView));els.settingsDot.addEventListener("click",()=>showView(els.settingsView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.pauseWaitButton.addEventListener("click",()=>closeSheets());
-  els.pauseAddAnywayButton.addEventListener("click",()=>{closeSheets();addEntry()});
+  els.pauseAddAnywayButton.addEventListener("click",()=>{
+    closeSheets();
+    setTimeout(()=>addEntry(),230);
+  });
   els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
   els.dayBackfillButton.addEventListener("click",()=>{if(activeDaySheetDate)openBackfillSheet(activeDaySheetDate)});
   els.backfillDate.addEventListener("change",updateBackfillSheetForDate);
   els.backfillCount.addEventListener("focus",()=>els.backfillCount.select());
   els.backfillCount.addEventListener("input",()=>{
     const raw=Number(els.backfillCount.value);
-    if(Number.isFinite(raw))backfillCountValue=clamp(Math.round(raw),0,99);
+    if(Number.isFinite(raw)){backfillCountValue=clamp(Math.round(raw),0,99);renderBackfillLimitHint();}
   });
   els.backfillCount.addEventListener("change",()=>{
     const raw=Number(els.backfillCount.value);
     backfillCountValue=Number.isFinite(raw)?clamp(Math.round(raw),0,99):0;
     els.backfillCount.value=String(backfillCountValue);
+    renderBackfillLimitHint();
   });
-  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.value=String(backfillCountValue)});
-  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.value=String(backfillCountValue)});
+  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.value=String(backfillCountValue);renderBackfillLimitHint()});
+  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.value=String(backfillCountValue);renderBackfillLimitHint()});
   els.saveBackfillButton.addEventListener("click",saveBackfill);
   els.deleteBackfillButton.addEventListener("click",deleteBackfill);
   els.closeBackfillSheet.addEventListener("click",()=>closeSheets());
