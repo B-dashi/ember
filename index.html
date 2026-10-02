@@ -39,13 +39,14 @@
             <svg class="cigarette-mark" viewBox="0 0 46 36" aria-hidden="true"><path d="M29 5c5 3 1 7 5 10 3 2 3 5 1 8"/><path d="M34 2c5 4 2 8 6 11"/><path d="M7 26h29v6H7z"/><path class="ember-tip" d="M7 26h5v6H7z"/></svg>
             <div class="count-line"><strong id="todayCount">0</strong><span>/</span><span id="limitCount">20</span></div>
             <div class="progress-subtitle">Heute</div>
-            <div class="limit-label" id="remainingText">20 verbleibend</div>
+            <div class="limit-label" id="remainingText">Tageslimit 20</div>
+            <div class="pause-status" id="pauseStatus">Pause-Ziel · 50 Min.</div>
           </div>
         </div>
       </section>
 
       <section class="home-content">
-        <button class="add-button" id="addButton" type="button"><span class="add-plus">+</span><span>Zigarette hinzufügen</span></button>
+        <button class="add-button" id="addButton" type="button"><span class="add-plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Zigarette hinzufügen</span></button>
 
         <button class="info-card" id="lastCard" type="button" aria-label="Letzte Zigarette bearbeiten">
           <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.4 2.1"/></svg></span>
@@ -82,9 +83,9 @@
           <span class="tile-copy"><strong>Tägliches Limit</strong><span id="limitTileValue">20 Zigaretten</span></span><span class="chevron">›</span>
         </button>
 
-        <button class="settings-tile" id="reminderTile" type="button">
-          <span class="tile-icon"><svg viewBox="0 0 24 24"><path d="M6.5 17h11l-1.3-2.1V10a4.2 4.2 0 0 0-8.4 0v4.9L6.5 17Z"/><path d="M10 19.2c.6.8 1.2 1.2 2 1.2s1.4-.4 2-1.2"/></svg></span>
-          <span class="tile-copy"><strong>Erinnerungen</strong><span id="reminderTileValue">Deaktiviert</span></span><span class="chevron">›</span>
+        <button class="settings-tile" id="pauseTile" type="button">
+          <span class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/><path d="M7.5 3.8 5.8 5.5M16.5 3.8l1.7 1.7"/></svg></span>
+          <span class="tile-copy"><strong>Pause-Ziel</strong><span id="pauseTileValue">50 Minuten</span></span><span class="chevron">›</span>
         </button>
 
         <button class="settings-tile" id="designTile" type="button">
@@ -145,11 +146,11 @@
     <button class="primary-sheet-button" id="closeLimitSheet" type="button">Fertig</button>
   </section>
 
-  <section class="modal-sheet" id="reminderSheet" aria-hidden="true">
-    <div class="sheet-handle"></div><div class="sheet-title">Erinnerungen</div>
-    <label class="toggle-row"><span><strong>Erinnerung aktivieren</strong><small>Wird in Ember gespeichert</small></span><input id="reminderToggle" type="checkbox"><i></i></label>
-    <label class="time-row"><span>Uhrzeit</span><input id="reminderTime" type="time" value="20:00"></label>
-    <button class="primary-sheet-button" id="closeReminderSheet" type="button">Fertig</button>
+  <section class="modal-sheet" id="pauseSheet" aria-hidden="true">
+    <div class="sheet-handle"></div><div class="sheet-title">Pause-Ziel</div>
+    <p class="sheet-helper">Lege fest, wie viel Abstand du zwischen zwei Einträgen anstreben möchtest.</p>
+    <div class="limit-stepper"><button id="pauseMinus" type="button" aria-label="Pause verkürzen">−</button><strong><span id="settingsPauseValue">50</span><small> Min.</small></strong><button id="pausePlus" type="button" aria-label="Pause verlängern">+</button></div>
+    <button class="primary-sheet-button" id="closePauseSheet" type="button">Fertig</button>
   </section>
 
   <section class="modal-sheet" id="designSheet" aria-hidden="true">
