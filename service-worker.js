@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v25-summary-cleanup";
+const CACHE = "ember-violet-v26-timeline-clusters";
 const SHELL = [
   "./",
   "./index.html",
