@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v33-week-swipe-summary";
+const CACHE = "ember-violet-v34-three-page-pager";
 const SHELL = [
   "./",
   "./index.html",
