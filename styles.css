@@ -1876,3 +1876,22 @@ html{
     height:42px;
   }
 }
+
+/* Ember v29: data import + gentle daily-limit suggestion */
+.hidden-file-input{
+  display:none!important;
+}
+.limit-suggestion{
+  grid-template-columns:minmax(0,1fr) auto;
+  margin-top:2px;
+}
+.limit-suggestion>small{
+  grid-column:1;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.25;
+}
+.limit-suggestion>button{
+  grid-column:2;
+  grid-row:1 / span 3;
+}
