@@ -7,7 +7,7 @@
   const THEME_MIGRATION={orange:"terracotta",teal:"blue",graphite:"violet"};
   const $=id=>document.getElementById(id);
   const els={
-    homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
+    pagerTrack:$("pagerTrack"),homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),progressWrap:$("progressWrap"),
     addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySheetTitle:$("daySheetTitle"),todaySheetSummary:$("todaySheetSummary"),dayDetailCount:$("dayDetailCount"),dayDetailFirst:$("dayDetailFirst"),dayDetailAverage:$("dayDetailAverage"),dayDetailBest:$("dayDetailBest"),dayDetailTimeline:$("dayDetailTimeline"),dayDetailStatus:$("dayDetailStatus"),dayBackfillButton:$("dayBackfillButton"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
@@ -21,7 +21,7 @@
     pageDots:$("pageDots"),analysisDot:$("analysisDot"),homeDot:$("homeDot"),settingsDot:$("settingsDot"),toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, pageTransitioning=false, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
+  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, activePageIndex=1, pagerAnimating=false, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
@@ -547,13 +547,11 @@
     renderMonthCalendar();
   }
   const PAGE_ORDER=()=>[els.analysisView,els.homeView,els.settingsView];
-  function currentView(){
-    if(!els.analysisView.hidden)return els.analysisView;
-    if(!els.settingsView.hidden)return els.settingsView;
-    return els.homeView;
-  }
   function pageIndex(view){return PAGE_ORDER().indexOf(view)}
-  function updatePageDots(view){
+  function currentView(){return PAGE_ORDER()[activePageIndex]||els.homeView}
+  function pagerWidth(){return els.homeView.getBoundingClientRect().width||window.innerWidth}
+  function pagerX(index=activePageIndex){return -index*pagerWidth()}
+  function updatePageDots(view=currentView()){
     const dots=[[els.analysisView,els.analysisDot],[els.homeView,els.homeDot],[els.settingsView,els.settingsDot]];
     dots.forEach(([page,dot])=>{
       const active=page===view;
@@ -561,132 +559,115 @@
       if(active)dot.setAttribute("aria-current","page");else dot.removeAttribute("aria-current");
     });
   }
-  function cleanupViewMotion(view){
-    if(!view)return;
-    view.classList.remove("page-entering","page-leaving","swipe-dragging","swipe-snapback");
-    view.style.transform="";
-    view.style.opacity="";
-    view.style.transition="";
-    view.style.zIndex="";
+  function updatePageA11y(){
+    PAGE_ORDER().forEach((view,index)=>{
+      const active=index===activePageIndex;
+      view.classList.toggle("is-active",active);
+      view.setAttribute("aria-hidden",String(!active));
+      if("inert" in view)view.inert=!active;
+    });
+  }
+  function setPagerPosition(x,animate=false){
+    els.pagerTrack.classList.toggle("is-animating",animate);
+    els.pagerTrack.style.transform=`translate3d(${x}px,0,0)`;
+  }
+  function finishPagerAnimation(){
+    els.pagerTrack.classList.remove("is-animating");
+    pagerAnimating=false;
   }
   function showView(view,options={}){
-    const old=currentView(),instant=Boolean(options.instant);
-    if(old===view){
-      [els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});
-      updatePageDots(view);
-      return;
-    }
-    if(pageTransitioning)return;
-    const oldIndex=pageIndex(old),newIndex=pageIndex(view),direction=newIndex>oldIndex?1:-1;
-    window.scrollTo({top:0,behavior:"instant"});
-    if(instant||window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-      [els.homeView,els.settingsView,els.analysisView].forEach(v=>{cleanupViewMotion(v);v.hidden=v!==view;v.classList.toggle("is-active",v===view)});
-      updatePageDots(view);
-      return;
-    }
-
-    pageTransitioning=true;
-    cleanupViewMotion(old);
-    cleanupViewMotion(view);
-    view.hidden=false;
-    view.classList.add("is-active","page-entering");
-    old.classList.add("page-leaving");
-    old.style.zIndex="1";
-    view.style.zIndex="2";
-    view.style.transform=`translate3d(${direction*34}%,0,0) scale(.985)`;
-    view.style.opacity=".35";
-    old.style.transform="translate3d(0,0,0) scale(1)";
-    old.style.opacity="1";
-    void view.offsetWidth;
-    const transition="transform 300ms cubic-bezier(.22,.78,.24,1), opacity 260ms ease";
-    view.style.transition=transition;
-    old.style.transition=transition;
-    requestAnimationFrame(()=>{
-      view.style.transform="translate3d(0,0,0) scale(1)";
-      view.style.opacity="1";
-      old.style.transform=`translate3d(${-direction*14}%,0,0) scale(.985)`;
-      old.style.opacity=".42";
-      updatePageDots(view);
-    });
-    setTimeout(()=>{
-      old.hidden=true;
-      old.classList.remove("is-active");
-      cleanupViewMotion(old);
-      cleanupViewMotion(view);
-      pageTransitioning=false;
-    },320);
+    const index=pageIndex(view);
+    if(index<0)return;
+    const instant=Boolean(options.instant)||window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    activePageIndex=index;
+    updatePageDots(view);
+    updatePageA11y();
+    pagerAnimating=!instant;
+    setPagerPosition(pagerX(index),!instant);
+    if(instant)finishPagerAnimation();
+    else setTimeout(finishPagerAnimation,340);
   }
   function sheetsOpen(){
     return [els.pauseConfirmSheet,els.backfillSheet,els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet]
       .some(sheet=>sheet&&sheet.getAttribute("aria-hidden")==="false");
   }
   function setupSwipeNavigation(){
-    let startX=null,startY=null,startTime=0,startView=null,dragging=false,suppressClick=false;
-    const MIN_DISTANCE=58,MIN_VELOCITY=.34,MAX_VERTICAL_RATIO=1.05;
+    let startX=null,startY=null,startTime=0,startIndex=1,dragging=false,baseX=0,suppressClick=false;
+    const MIN_DISTANCE=54,MIN_VELOCITY=.28,DIRECTION_LOCK=10;
     const reset=()=>{
-      if(startView){
-        startView.classList.remove("swipe-dragging");
-        startView.style.transform="";
-        startView.style.opacity="";
-      }
-      startX=startY=startTime=startView=null;
+      startX=startY=startTime=null;
       dragging=false;
+      els.pagerTrack.classList.remove("is-dragging");
     };
     document.addEventListener("touchstart",event=>{
-      if(event.touches.length!==1||sheetsOpen()||pageTransitioning)return;
+      if(event.touches.length!==1||sheetsOpen()||pagerAnimating)return;
       if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
       const touch=event.touches[0];
       startX=touch.clientX;
       startY=touch.clientY;
       startTime=Date.now();
-      startView=currentView();
+      startIndex=activePageIndex;
+      baseX=pagerX(startIndex);
       dragging=false;
+      els.pagerTrack.classList.remove("is-animating");
     },{passive:true});
 
     document.addEventListener("touchmove",event=>{
-      if(startX==null||!startView||event.touches.length!==1)return;
+      if(startX==null||event.touches.length!==1)return;
       const touch=event.touches[0],dx=touch.clientX-startX,dy=touch.clientY-startY;
       if(!dragging){
-        if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)){reset();return}
-        if(Math.abs(dx)<10)return;
-        dragging=Math.abs(dx)>Math.abs(dy)*1.08;
-        if(!dragging)return;
-        startView.classList.add("swipe-dragging");
+        if(Math.abs(dx)<DIRECTION_LOCK&&Math.abs(dy)<DIRECTION_LOCK)return;
+        if(Math.abs(dy)>=Math.abs(dx)){reset();return}
+        dragging=true;
+        els.pagerTrack.classList.add("is-dragging");
       }
       if(event.cancelable)event.preventDefault();
-      const index=pageIndex(startView),canMove=(dx<0&&index<PAGE_ORDER().length-1)||(dx>0&&index>0);
-      const resistance=canMove?0.18:0.055;
-      startView.style.transform=`translate3d(${dx*resistance}px,0,0) scale(.997)`;
-      startView.style.opacity=String(canMove?Math.max(.9,1-Math.abs(dx)/1800):.96);
+      const atLeft=startIndex===0&&dx>0,atRight=startIndex===2&&dx<0;
+      const adjusted=(atLeft||atRight)?dx*.28:dx;
+      setPagerPosition(baseX+adjusted,false);
     },{passive:false});
 
     document.addEventListener("touchend",event=>{
-      if(startX==null||!startView)return;
+      if(startX==null)return;
       const touch=event.changedTouches[0],dx=touch.clientX-startX,dy=touch.clientY-startY,elapsed=Math.max(1,Date.now()-startTime);
-      const velocity=Math.abs(dx)/elapsed,horizontal=Math.abs(dx)>Math.abs(dy)*MAX_VERTICAL_RATIO;
-      const qualifies=horizontal&&(Math.abs(dx)>=MIN_DISTANCE||velocity>=MIN_VELOCITY);
-      const index=pageIndex(startView),targetIndex=dx<0?index+1:index-1,target=PAGE_ORDER()[targetIndex];
-      startView.style.transform="";
-      startView.style.opacity="";
-      startView.classList.remove("swipe-dragging");
-      if(qualifies&&target){
-        suppressClick=true;
-        showView(target);
-      }else{
-        startView.classList.add("swipe-snapback");
-        setTimeout(()=>startView&&startView.classList.remove("swipe-snapback"),220);
+      const velocity=Math.abs(dx)/elapsed,horizontal=Math.abs(dx)>Math.abs(dy);
+      let next=startIndex;
+      if(horizontal&&(Math.abs(dx)>=MIN_DISTANCE||velocity>=MIN_VELOCITY)){
+        if(dx<0)next=Math.min(2,startIndex+1);
+        if(dx>0)next=Math.max(0,startIndex-1);
       }
-      startX=startY=startTime=startView=null;
-      dragging=false;
+      suppressClick=dragging&&Math.abs(dx)>18;
+      reset();
+      activePageIndex=next;
+      updatePageDots();
+      updatePageA11y();
+      pagerAnimating=true;
+      setPagerPosition(pagerX(next),true);
+      setTimeout(finishPagerAnimation,340);
+      startX=startY=startTime=null;
     },{passive:true});
 
-    document.addEventListener("touchcancel",reset,{passive:true});
+    document.addEventListener("touchcancel",()=>{
+      if(startX!=null){
+        pagerAnimating=true;
+        setPagerPosition(pagerX(startIndex),true);
+        setTimeout(finishPagerAnimation,340);
+      }
+      reset();
+    },{passive:true});
+
     document.addEventListener("click",event=>{
       if(!suppressClick)return;
       suppressClick=false;
       event.preventDefault();
       event.stopPropagation();
     },true);
+
+    let resizeTimer=null;
+    window.addEventListener("resize",()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(()=>setPagerPosition(pagerX(),false),80);
+    });
   }
 
   function playAddAnimation(){
