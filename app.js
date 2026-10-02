@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id);
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
-    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseGoal:$("homePauseGoal"),homePauseHint:$("homePauseHint"),homePauseFill:$("homePauseFill"),progressCircle:$("progressCircle"),
+    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),
     addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),emptyState:$("emptyState"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
@@ -50,21 +50,20 @@
   }
   function renderPauseStatus(){
     const status=pauseStatusData(),goal=settings.pauseGoal;
-    els.homePauseGoal.textContent=`${goal} Min.`;
     if(status.state==="empty"){
       els.homePauseValue.textContent=`${goal} Min.`;
       els.homePauseHint.textContent="Startet mit dem ersten Eintrag";
     }else if(status.state==="reached"){
       const extra=Math.max(0,status.elapsed-goal);
       els.homePauseValue.textContent=extra>0?`+${extra} Min.`:"Geschafft";
-      els.homePauseHint.textContent="Pause geschafft";
+      els.homePauseHint.textContent=extra>0?`${status.elapsed} Min. Pause`:"Pause geschafft";
     }else{
       els.homePauseValue.textContent=`Noch ${status.remaining} Min.`;
       els.homePauseHint.textContent=status.state==="close"?"Fast geschafft":`${status.elapsed<1?0:status.elapsed} von ${goal} Min.`;
     }
     els.pauseCardHome.dataset.state=status.state;
-    els.homePauseFill.dataset.state=status.state;
-    els.homePauseFill.style.width=`${status.state==="empty"?0:Math.max(4,Math.round(status.progress*100))}%`;
+    els.pauseDialValue.dataset.state=status.state;
+    els.pauseDialValue.style.strokeDashoffset=String(100-Math.round(status.progress*100));
   }
   function recentEntries(days=7){const start=dayStart()-Math.max(0,days-1)*86400000;return entries.filter(item=>Date.parse(item.time)>=start)}
   function recentGaps(days=3){const gaps=[],base=dayStart();for(let i=0;i<days;i++)gaps.push(...gapMinutes(entriesForDay(base-i*86400000)));return gaps}
