@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v30-insights-feedback";
+const CACHE = "ember-violet-v31-pause-guard-backfill";
 const SHELL = [
   "./",
   "./index.html",
