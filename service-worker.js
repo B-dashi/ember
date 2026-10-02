@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v26-timeline-clusters";
+const CACHE = "ember-violet-v27-analysis-heatmap-month";
 const SHELL = [
   "./",
   "./index.html",
