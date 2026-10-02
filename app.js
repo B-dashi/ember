@@ -2,7 +2,7 @@
   "use strict";
   const STORAGE_ENTRIES="ember.v1.entries";
   const STORAGE_SETTINGS="ember.v1.settings";
-  const THEMES={violet:{name:"Violett",themeColor:"#f6f4ff"},blue:{name:"Blau",themeColor:"#f3f8fe"},terracotta:{name:"Terrakotta",themeColor:"#fbf5ef"},green:{name:"Grün",themeColor:"#f4f7f1"},dark:{name:"Dunkel",themeColor:"#12110f"}};
+  const THEMES={violet:{name:"Violett",themeColor:"#f6f4ff"},blue:{name:"Blau",themeColor:"#f3f8fe"},terracotta:{name:"Terrakotta",themeColor:"#fbf5ef"},green:{name:"Grün",themeColor:"#f4f7f1"},dark:{name:"Dunkel",themeColor:"#0a0b0d"}};
   const THEME_MIGRATION={orange:"terracotta",teal:"blue",graphite:"violet"};
   const $=id=>document.getElementById(id);
   const els={
