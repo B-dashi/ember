@@ -16,7 +16,7 @@
     pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     exportDataButton:$("exportDataButton"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
-    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),patternList:$("patternList"),timelinePlot:$("timelinePlot"),timelineEmpty:$("timelineEmpty"),weekChart:$("weekChart"),
+    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),analysisDayTimeline:$("analysisDayTimeline"),analysisDayEmpty:$("analysisDayEmpty"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),weekChart:$("weekChart"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null;
@@ -55,20 +55,17 @@
     const h=Math.floor(diff/60),m=diff%60;
     return m?`${h} Std. ${m} Min. später als gestern`:`${h} Std. später als gestern`;
   }
-  function renderMiniTimeline(today){
-    els.dayMiniTimeline.innerHTML="";
-    if(!today.length){
-      els.dayMiniTimeline.classList.add("is-empty");
-      return;
-    }
-    els.dayMiniTimeline.classList.remove("is-empty");
-    today.forEach(entry=>{
+  function renderTimelineDots(target,list){
+    target.innerHTML="";
+    target.classList.toggle("is-empty",!list.length);
+    list.forEach(entry=>{
       const d=new Date(entry.time),minutes=d.getHours()*60+d.getMinutes(),dot=document.createElement("span");
       dot.className="day-mini-dot";
       dot.style.left=`${clamp(minutes/1440*100,1.5,98.5)}%`;
-      els.dayMiniTimeline.appendChild(dot);
+      target.appendChild(dot);
     });
   }
+  function renderMiniTimeline(today){renderTimelineDots(els.dayMiniTimeline,today)}
   function renderDaySummary(today){
     const count=today.length,first=today[0],gaps=gapMinutes(today),best=longestGap(gaps),later=firstEntryLaterText(today);
     els.entryCountLabel.textContent=String(count);
@@ -77,6 +74,72 @@
     els.dayFirstCompare.hidden=!later;
     els.dayFirstCompare.textContent=later;
     renderMiniTimeline(today);
+  }
+  function renderTimeHeatmap(){
+    const recent=recentEntries(30),buckets=Array(12).fill(0);
+    recent.forEach(entry=>{
+      const hour=new Date(entry.time).getHours();
+      buckets[Math.floor(hour/2)]++;
+    });
+    const max=Math.max(...buckets,0);
+    els.timeHeatmap.innerHTML="";
+    buckets.forEach((count,index)=>{
+      const cell=document.createElement("span"),start=index*2,end=start+2;
+      const level=count===0?0:Math.max(1,Math.ceil(count/Math.max(max,1)*4));
+      cell.className="time-heatmap-cell";
+      cell.dataset.level=String(level);
+      cell.setAttribute("aria-label",`${String(start).padStart(2,"0")} bis ${String(end).padStart(2,"0")} Uhr: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      cell.title=`${String(start).padStart(2,"0")}–${String(end).padStart(2,"0")} · ${count}`;
+      els.timeHeatmap.appendChild(cell);
+    });
+    if(!max){
+      els.heatmapPeak.textContent="Noch keine Daten für ein Zeitmuster";
+      return;
+    }
+    const peakIndex=buckets.indexOf(max),start=peakIndex*2,end=start+2;
+    els.heatmapPeak.textContent=`Am häufigsten: ${String(start).padStart(2,"0")}–${String(end).padStart(2,"0")} Uhr`;
+  }
+  function renderAnalysisDayTimeline(today){
+    renderTimelineDots(els.analysisDayTimeline,today);
+    els.analysisDayEmpty.hidden=today.length>0;
+  }
+  function localDateKey(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  }
+  function renderMonthCalendar(){
+    const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+    const first=new Date(year,month,1),daysInMonth=new Date(year,month+1,0).getDate();
+    const counts=new Map();
+    entries.forEach(entry=>{
+      const d=new Date(entry.time);
+      if(d.getFullYear()!==year||d.getMonth()!==month)return;
+      const key=localDateKey(d);
+      counts.set(key,(counts.get(key)||0)+1);
+    });
+    const monthCounts=Array.from({length:daysInMonth},(_,i)=>counts.get(localDateKey(new Date(year,month,i+1)))||0);
+    const max=Math.max(...monthCounts,0),total=monthCounts.reduce((sum,value)=>sum+value,0);
+    const title=new Intl.DateTimeFormat("de-AT",{month:"long",year:"numeric"}).format(first);
+    els.monthCalendarTitle.textContent=title.charAt(0).toUpperCase()+title.slice(1);
+    els.monthTotal.textContent=`${total} ${total===1?"Eintrag":"Einträge"}`;
+    els.monthCalendar.innerHTML="";
+    const offset=(first.getDay()+6)%7;
+    for(let i=0;i<offset;i++){
+      const blank=document.createElement("span");
+      blank.className="month-day is-blank";
+      blank.setAttribute("aria-hidden","true");
+      els.monthCalendar.appendChild(blank);
+    }
+    for(let day=1;day<=daysInMonth;day++){
+      const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("span");
+      const level=count===0?0:Math.max(1,Math.ceil(count/Math.max(max,1)*4));
+      cell.className="month-day";
+      cell.dataset.level=String(level);
+      if(day===now.getDate())cell.classList.add("is-today");
+      if(date>now&&day!==now.getDate())cell.classList.add("is-future");
+      cell.innerHTML=`<b>${day}</b>${count?`<small>${count}</small>`:""}`;
+      cell.setAttribute("aria-label",`${day}. ${els.monthCalendarTitle.textContent}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      els.monthCalendar.appendChild(cell);
+    }
   }
   function renderTodaySheet(){
     const today=todaysEntries(),gaps=gapMinutes(today),best=longestGap(gaps);
@@ -229,41 +292,9 @@
       els.currentPauseFill.dataset.state="empty";
       els.analysisCurrentPause.dataset.state="empty";
     }
-    renderPatterns();
-
-    const timelineGroups=[];
-    const TIMELINE_CLUSTER_GAP=28;
-    today.forEach(entry=>{
-      const d=new Date(entry.time),minutes=d.getHours()*60+d.getMinutes(),last=timelineGroups[timelineGroups.length-1];
-      if(last&&minutes-last.lastMinute<=TIMELINE_CLUSTER_GAP){
-        last.entries.push(entry);
-        last.lastMinute=minutes;
-      }else{
-        timelineGroups.push({entries:[entry],firstMinute:minutes,lastMinute:minutes});
-      }
-    });
-    els.timelinePlot.innerHTML="";
-    const showExactTimes=timelineGroups.length<=8;
-    timelineGroups.forEach((group,index)=>{
-      const first=new Date(group.entries[0].time),last=new Date(group.entries[group.entries.length-1].time);
-      const center=(group.firstMinute+group.lastMinute)/2,position=clamp(center/1440*100,1.5,98.5),marker=document.createElement("span");
-      const isCluster=group.entries.length>1;
-      const firstTime=formatTime(first),lastTime=formatTime(last);
-      const label=isCluster&&firstTime!==lastTime?`${firstTime}–${lastTime}`:firstTime;
-      marker.className=`timeline-event ${index%2?"lane-b":"lane-a"}${showExactTimes?"":" dense"}${isCluster?" multiple cluster":""}`;
-      marker.style.left=`${position}%`;
-      marker.setAttribute("aria-label",isCluster?`${group.entries.length} Einträge zwischen ${firstTime} und ${lastTime}`:`Eintrag um ${firstTime}`);
-      marker.title=isCluster?`${group.entries.length}× · ${label}`:label;
-      const dot=document.createElement("span");
-      dot.className="timeline-event-dot";
-      dot.textContent=isCluster?`${group.entries.length}×`:"";
-      const timeLabel=document.createElement("span");
-      timeLabel.className="timeline-event-time";
-      timeLabel.textContent=label;
-      marker.append(dot,timeLabel);
-      els.timelinePlot.appendChild(marker);
-    });
-    els.timelineEmpty.hidden=today.length>0;
+    renderTimeHeatmap();
+    renderAnalysisDayTimeline(today);
+    renderMonthCalendar();
 
     const days=[],base=dayStart();
     for(let i=6;i>=0;i--){
