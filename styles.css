@@ -2318,3 +2318,215 @@ html{
     animation:none!important;
   }
 }
+
+/* Ember v31: home rhythm, pause guard, backfill days */
+
+/* Home vertical rhythm: the two gaps now feel intentionally identical. */
+#lastCard{
+  margin-bottom:0;
+}
+.day-summary-card{
+  margin-top:16px;
+}
+
+/* Last cigarette uses the width of the card instead of stacking everything tightly. */
+#lastCard{
+  min-height:82px;
+  padding:13px 17px;
+  grid-template-columns:40px minmax(0,1fr) 16px;
+  gap:13px;
+}
+#lastCard .info-copy{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:
+    "label time"
+    "relative time";
+  align-items:center;
+  column-gap:15px;
+  row-gap:3px;
+}
+#lastCard .info-copy small{
+  grid-area:label;
+  font-size:12.5px;
+  line-height:1.15;
+}
+#lastCard .info-copy strong{
+  grid-area:time;
+  margin:0;
+  font-size:20px;
+  line-height:1;
+  text-align:right;
+  white-space:nowrap;
+}
+#lastCard .info-copy span{
+  grid-area:relative;
+  font-size:12px;
+  line-height:1.2;
+}
+#lastCard .chevron{
+  justify-self:end;
+}
+
+/* Pause guard: calm choice, clear remaining time, no browser-confirm look. */
+.pause-confirm-sheet{
+  text-align:center;
+}
+.pause-confirm-kicker{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:760;
+  text-transform:uppercase;
+  letter-spacing:.055em;
+}
+.pause-confirm-time{
+  margin-top:7px;
+  font-size:32px;
+  line-height:1;
+  font-weight:820;
+  letter-spacing:-.045em;
+  color:var(--ink);
+}
+.pause-confirm-subtitle{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:600;
+}
+.pause-confirm-track{
+  height:7px;
+  margin:17px 4px 15px;
+  border-radius:99px;
+  overflow:hidden;
+  background:color-mix(in srgb,var(--muted) 10%,transparent);
+}
+.pause-confirm-track span{
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent-2),var(--accent));
+  transition:width .35s ease;
+}
+.pause-confirm-sheet p{
+  margin:0 auto 17px;
+  max-width:290px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.4;
+}
+.pause-confirm-actions{
+  display:grid;
+  grid-template-columns:1fr 1.25fr;
+  gap:9px;
+}
+.pause-confirm-actions button{
+  min-height:50px;
+  border-radius:16px;
+  font-size:13px;
+  font-weight:780;
+}
+.pause-wait-button{
+  background:#5d9d72;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(67,126,88,.16);
+}
+.pause-add-anyway-button{
+  background:color-mix(in srgb,#d87567 88%,var(--card));
+  color:#fff;
+  box-shadow:0 8px 18px rgba(175,85,73,.12);
+}
+
+/* Count-only backfill: intentionally separate from timestamp-based tracking. */
+.backfill-count-label{
+  margin:2px 0 -1px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:650;
+}
+.backfill-stepper{
+  margin-top:7px;
+}
+.backfill-date-row input{
+  max-width:165px;
+}
+.backfill-delete{
+  margin-bottom:10px;
+}
+.secondary-sheet-button{
+  width:100%;
+  min-height:48px;
+  margin-top:8px;
+  border-radius:16px;
+  background:color-mix(in srgb,var(--muted) 7%,transparent);
+  color:var(--muted);
+  font-weight:720;
+}
+.day-backfill-button{
+  width:100%;
+  min-height:42px;
+  margin:0 0 12px;
+  padding:0 12px;
+  border-radius:13px;
+  background:var(--accent-soft);
+  color:var(--accent);
+  font-size:11.5px;
+  font-weight:720;
+}
+.day-backfill-button[hidden]{
+  display:none;
+}
+.week-day.is-manual,
+.month-day.is-manual{
+  outline:1px dashed color-mix(in srgb,var(--accent) 30%,transparent);
+  outline-offset:-3px;
+}
+.week-day.is-manual>small{
+  font-size:6.8px;
+  letter-spacing:-.01em;
+}
+
+/* With the explanatory tracking note removed, the summary can end more cleanly. */
+.period-summary-card{
+  padding-bottom:16px;
+}
+
+/* Dark mode equivalents for the new controls. */
+:root[data-theme="dark"] .pause-confirm-track{
+  background:rgba(255,255,255,.08);
+}
+:root[data-theme="dark"] .pause-wait-button{
+  background:#628d70;
+}
+:root[data-theme="dark"] .pause-add-anyway-button{
+  background:#9e5e54;
+}
+:root[data-theme="dark"] .secondary-sheet-button{
+  background:rgba(255,255,255,.045);
+}
+:root[data-theme="dark"] .week-day.is-manual,
+:root[data-theme="dark"] .month-day.is-manual{
+  outline-color:rgba(211,177,91,.26);
+}
+
+@media(max-width:390px){
+  #lastCard{
+    min-height:80px;
+    padding:12px 15px;
+    grid-template-columns:38px minmax(0,1fr) 14px;
+    gap:11px;
+  }
+  #lastCard .info-copy{
+    column-gap:11px;
+  }
+  #lastCard .info-copy strong{
+    font-size:18.5px;
+  }
+  .pause-confirm-time{
+    font-size:29px;
+  }
+  .pause-confirm-actions{
+    grid-template-columns:.9fr 1.2fr;
+  }
+}
