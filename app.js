@@ -312,7 +312,7 @@
     if(!date)return;
     const manual=manualCountForDay(date),exact=entriesForDay(dayStart(date)).length;
     backfillCountValue=manual!=null?manual:exact;
-    els.backfillCount.textContent=String(backfillCountValue);
+    els.backfillCount.value=String(backfillCountValue);
     els.deleteBackfillButton.hidden=manual==null;
   }
   function openBackfillSheet(date=null){
@@ -353,9 +353,31 @@
     const h=Math.floor(mins/60),m=mins%60;
     return m?`${h} Std. ${m} Min.`:`${h} Std.`;
   }
-  function renderPauseConfirm(){
+  function renderPauseConfirm(mode="pause"){
+    const todayCount=todaysEntries().length;
+    const overBy=Math.max(0,todayCount-settings.limit);
+
+    els.pauseConfirmSheet.classList.toggle("is-over-limit",mode==="limit");
+
+    if(mode==="limit"){
+      els.pauseConfirmFill.style.width="100%";
+      els.pauseWaitButton.textContent="Zurück";
+      els.pauseAddAnywayButton.textContent="Trotzdem eintragen";
+      if(todayCount>=settings.limit){
+        els.pauseConfirmTime.textContent=overBy>0
+          ?`Du bist ${overBy} über deinem Limit`
+          :"Tageslimit erreicht";
+        els.pauseConfirmSubtitle.textContent=overBy>0
+          ?`Heute: ${todayCount} · Limit: ${settings.limit}`
+          :`Heute: ${todayCount} · Limit: ${settings.limit}`;
+      }
+      return true;
+    }
+
     const status=pauseStatusData();
     if(status.state==="empty"||status.state==="reached")return false;
+    els.pauseWaitButton.textContent="Warten";
+    els.pauseAddAnywayButton.textContent="Trotzdem eintragen";
     els.pauseConfirmTime.textContent=`Noch ${formatRemaining(status.remaining)}`;
     els.pauseConfirmSubtitle.textContent="bis zu deiner Pause";
     els.pauseConfirmFill.style.width=`${Math.max(3,Math.round(status.progress*100))}%`;
@@ -363,10 +385,21 @@
   }
   function requestAddEntry(){
     const today=todaysEntries();
-    if(!today.length){addEntry();return}
+
+    if(!today.length){
+      addEntry();
+      return;
+    }
+
+    if(today.length>=settings.limit){
+      renderPauseConfirm("limit");
+      openSheet(els.pauseConfirmSheet);
+      return;
+    }
+
     const status=pauseStatusData();
     if(status.state==="waiting"||status.state==="close"){
-      renderPauseConfirm();
+      renderPauseConfirm("pause");
       openSheet(els.pauseConfirmSheet);
       return;
     }
@@ -595,9 +628,11 @@
       els.pagerTrack.classList.remove("is-dragging");
     };
 
-    els.pagerTrack.addEventListener("touchstart",event=>{
+    const blockedTarget=target=>Boolean(target.closest("input,select,textarea,.modal-sheet,.toast"));
+
+    document.addEventListener("touchstart",event=>{
       if(event.touches.length!==1||sheetsOpen())return;
-      if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
+      if(blockedTarget(event.target))return;
       const touch=event.touches[0];
       startX=lastX=touch.clientX;
       startY=touch.clientY;
@@ -605,9 +640,9 @@
       startIndex=activePageIndex;
       mode="pending";
       els.pagerTrack.classList.remove("is-animating");
-    },{passive:true});
+    },{passive:true,capture:true});
 
-    els.pagerTrack.addEventListener("touchmove",event=>{
+    document.addEventListener("touchmove",event=>{
       if(startX==null||event.touches.length!==1||mode==="vertical")return;
       const touch=event.touches[0],dx=touch.clientX-startX,dy=touch.clientY-startY;
       lastX=touch.clientX;
@@ -629,9 +664,9 @@
       const atRight=startIndex===2&&dx<0;
       const resistance=(atLeft||atRight)?0.24:1;
       setPagerTransform(pagerOffset(startIndex)+dx*resistance,false);
-    },{passive:false});
+    },{passive:false,capture:true});
 
-    els.pagerTrack.addEventListener("touchend",event=>{
+    document.addEventListener("touchend",event=>{
       if(startX==null)return;
       const touch=event.changedTouches[0];
       lastX=touch.clientX;
@@ -655,9 +690,9 @@
       setPagerTransform(pagerOffset(target),true);
       setTimeout(()=>els.pagerTrack.classList.remove("is-animating"),320);
       reset();
-    },{passive:true});
+    },{passive:true,capture:true});
 
-    els.pagerTrack.addEventListener("touchcancel",()=>{
+    document.addEventListener("touchcancel",()=>{
       if(startX!=null){
         activePageIndex=startIndex;
         updatePageDots();
@@ -666,9 +701,9 @@
         setTimeout(()=>els.pagerTrack.classList.remove("is-animating"),320);
       }
       reset();
-    },{passive:true});
+    },{passive:true,capture:true});
 
-    els.pagerTrack.addEventListener("click",event=>{
+    document.addEventListener("click",event=>{
       if(!suppressClick)return;
       suppressClick=false;
       event.preventDefault();
@@ -681,7 +716,6 @@
       resizeTimer=setTimeout(()=>setPagerTransform(pagerOffset(),false),80);
     });
   }
-
   function playAddAnimation(){
     clearTimeout(addAnimationTimer);
     els.progressWrap.classList.remove("just-added");
@@ -750,8 +784,18 @@
   els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
   els.dayBackfillButton.addEventListener("click",()=>{if(activeDaySheetDate)openBackfillSheet(activeDaySheetDate)});
   els.backfillDate.addEventListener("change",updateBackfillSheetForDate);
-  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.textContent=String(backfillCountValue)});
-  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.textContent=String(backfillCountValue)});
+  els.backfillCount.addEventListener("focus",()=>els.backfillCount.select());
+  els.backfillCount.addEventListener("input",()=>{
+    const raw=Number(els.backfillCount.value);
+    if(Number.isFinite(raw))backfillCountValue=clamp(Math.round(raw),0,99);
+  });
+  els.backfillCount.addEventListener("change",()=>{
+    const raw=Number(els.backfillCount.value);
+    backfillCountValue=Number.isFinite(raw)?clamp(Math.round(raw),0,99):0;
+    els.backfillCount.value=String(backfillCountValue);
+  });
+  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.value=String(backfillCountValue)});
+  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.value=String(backfillCountValue)});
   els.saveBackfillButton.addEventListener("click",saveBackfill);
   els.deleteBackfillButton.addEventListener("click",deleteBackfill);
   els.closeBackfillSheet.addEventListener("click",()=>closeSheets());
