@@ -40,7 +40,11 @@
             <div class="count-line"><strong id="todayCount">0</strong><span>/</span><span id="limitCount">20</span></div>
             <div class="progress-subtitle">Heute</div>
             <div class="limit-label" id="remainingText">Tageslimit 20</div>
-            <div class="pause-status" id="pauseStatus">Pause-Ziel · 50 Min.</div>
+            <div class="pause-live" id="pauseLive" data-state="empty">
+              <div class="pause-live-main"><span>Pause</span><strong id="pauseStatus">–</strong></div>
+              <div class="pause-live-hint" id="pauseHint">Pause-Ziel 50 Min.</div>
+              <div class="pause-live-track"><span id="pauseHomeFill"></span></div>
+            </div>
           </div>
         </div>
       </section>
@@ -151,6 +155,11 @@
           <div class="pause-analysis-meta"><span>Ø Pause heute</span><strong id="analysisPauseAverage">–</strong></div>
         </div>
 
+        <div class="patterns-card">
+          <div class="chart-title"><strong>Automatische Muster</strong><span>Nur aus deinen Eintragszeiten erkannt</span></div>
+          <div class="pattern-list" id="patternList"></div>
+        </div>
+
         <div class="chart-card">
           <div class="chart-title"><strong>Tagesverlauf</strong><span>Deine Einträge nach Uhrzeit</span></div>
           <div class="timeline-plot" id="timelinePlot"></div>
@@ -175,6 +184,17 @@
     <div class="sheet-handle"></div><div class="sheet-title">Pause-Ziel</div>
     <p class="sheet-helper">Lege fest, wie viel Abstand du zwischen zwei Einträgen anstreben möchtest.</p>
     <div class="limit-stepper"><button id="pauseMinus" type="button" aria-label="Pause verkürzen">−</button><strong><span id="settingsPauseValue">50</span><small> Min.</small></strong><button id="pausePlus" type="button" aria-label="Pause verlängern">+</button></div>
+
+    <label class="toggle-row smart-toggle-row">
+      <span><strong>Sanfte Vorschläge</strong><small>Ember schlägt nur vor und ändert nie automatisch.</small></span>
+      <input id="smartPauseToggle" type="checkbox"><i></i>
+    </label>
+    <div class="smart-suggestion" id="smartPauseSuggestion" hidden>
+      <span>Vorschlag</span>
+      <strong id="smartPauseText">55 Min. ausprobieren?</strong>
+      <button id="smartPauseApply" type="button">Übernehmen</button>
+    </div>
+
     <button class="primary-sheet-button" id="closePauseSheet" type="button">Fertig</button>
   </section>
 
