@@ -8,7 +8,7 @@
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),
-    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySummaryFooter:$("daySummaryFooter"),todaySheetSummary:$("todaySheetSummary"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
+    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),todaySheetSummary:$("todaySheetSummary"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
@@ -70,20 +70,13 @@
     });
   }
   function renderDaySummary(today){
-    const count=today.length,first=today[0],last=today[today.length-1],gaps=gapMinutes(today),best=longestGap(gaps),later=firstEntryLaterText(today);
+    const count=today.length,first=today[0],gaps=gapMinutes(today),best=longestGap(gaps),later=firstEntryLaterText(today);
     els.entryCountLabel.textContent=String(count);
     els.dayFirstEntry.textContent=first?formatTime(new Date(first.time)):"–";
     els.dayBestPause.textContent=formatGap(best);
     els.dayFirstCompare.hidden=!later;
     els.dayFirstCompare.textContent=later;
     renderMiniTimeline(today);
-    if(!count){
-      els.daySummaryFooter.textContent="Noch keine Einträge heute";
-    }else if(count===1){
-      els.daySummaryFooter.textContent=`Letzter Eintrag ${formatTime(new Date(last.time))}`;
-    }else{
-      els.daySummaryFooter.textContent=`Letzter ${formatTime(new Date(last.time))} · Beste Pause ${formatGap(best)}`;
-    }
   }
   function renderTodaySheet(){
     const today=todaysEntries(),gaps=gapMinutes(today),best=longestGap(gaps);
