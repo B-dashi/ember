@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v12-analysis-pause";
+const CACHE = "ember-violet-v13-ui-refine";
 const SHELL = [
   "./",
   "./index.html",
