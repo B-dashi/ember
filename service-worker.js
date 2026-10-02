@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v9-typography-balance";
+const CACHE = "ember-violet-v10-pause-goal";
 const SHELL = [
   "./",
   "./index.html",
