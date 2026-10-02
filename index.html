@@ -15,6 +15,7 @@
 </head>
 <body>
   <main class="app-shell">
+    <div class="pager-track" id="pagerTrack">
     <section class="view is-active" id="homeView" aria-label="Startseite">
       <section class="hero hero-home">
         <header class="home-header">
@@ -100,10 +101,13 @@
       </section>
     </section>
 
-    <section class="view" id="settingsView" aria-label="Einstellungen" hidden>
+    <section class="view" id="settingsView" aria-label="Einstellungen">
       <section class="hero hero-subpage">
-        <header class="subpage-header">
-          <button class="round-button" id="settingsBackButton" type="button" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
+        <header class="subpage-header pager-subpage-header">
+          <button class="pager-home-button is-left" id="settingsBackButton" type="button" aria-label="Zur Startseite">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+            <span>Home</span>
+          </button>
           <h1>Einstellungen</h1>
           <span class="header-spacer"></span>
         </header>
@@ -142,12 +146,15 @@
       </section>
     </section>
 
-    <section class="view" id="analysisView" aria-label="Analyse" hidden>
+    <section class="view" id="analysisView" aria-label="Analyse">
       <section class="hero hero-subpage">
-        <header class="subpage-header">
-          <button class="round-button" id="analysisBackButton" type="button" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
-          <h1>Analyse</h1>
+        <header class="subpage-header pager-subpage-header">
           <span class="header-spacer"></span>
+          <h1>Analyse</h1>
+          <button class="pager-home-button is-right" id="analysisBackButton" type="button" aria-label="Zur Startseite">
+            <span>Home</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          </button>
         </header>
       </section>
       <section class="analysis-content">
@@ -232,6 +239,7 @@
         </div>
       </section>
     </section>
+    </div>
   </main>
 
   <nav class="page-dots" id="pageDots" aria-label="Bereiche">
