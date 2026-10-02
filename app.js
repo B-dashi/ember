@@ -72,14 +72,15 @@
     els.smartPauseSuggestion.hidden=!suggestion;
     if(suggestion)els.smartPauseText.textContent=`${suggestion} Min. ausprobieren?`;
   }
-  function dayPart(hour){if(hour<5)return"Nacht";if(hour<9)return"früher Morgen";if(hour<12)return"Vormittag";if(hour<17)return"Nachmittag";if(hour<22)return"Abend";return"Nacht"}
+  function dayPart(hour){if(hour<5)return"Nacht";if(hour<9)return"Morgen";if(hour<12)return"Vormittag";if(hour<17)return"Nachmittag";if(hour<22)return"Abend";return"Nacht"}
+  function dayPartPhrase(name){return name==="Nacht"?"in der Nacht":`am ${name.toLowerCase()}`}
   function renderPatterns(){
     const recent=recentEntries(7),items=[];
     if(recent.length>=6){
       const counts=new Map();
       recent.forEach(entry=>{const p=dayPart(new Date(entry.time).getHours());counts.set(p,(counts.get(p)||0)+1)});
       const busiest=[...counts.entries()].sort((a,b)=>b[1]-a[1])[0];
-      if(busiest)items.push(`Die meisten Einträge liegen aktuell am ${busiest[0].toLowerCase()}.`);
+      if(busiest)items.push(`Die meisten Einträge liegen aktuell ${dayPartPhrase(busiest[0])}.`);
     }
     const gapBuckets=new Map(),base=dayStart();
     for(let i=0;i<7;i++){
@@ -92,7 +93,7 @@
       }
     }
     const gapAverages=[...gapBuckets.entries()].filter(([,values])=>values.length>=2).map(([name,values])=>[name,averageFromGaps(values)]).sort((a,b)=>b[1]-a[1]);
-    if(gapAverages[0])items.push(`Deine längsten Pausen liegen aktuell am ${gapAverages[0][0].toLowerCase()}.`);
+    if(gapAverages[0])items.push(`Deine längsten Pausen liegen aktuell ${dayPartPhrase(gapAverages[0][0])}.`);
     els.patternList.innerHTML="";
     if(!items.length){
       const empty=document.createElement("div");empty.className="pattern-empty";empty.textContent="Noch nicht genug Daten. Ember erkennt Muster automatisch, ohne dass du etwas zusätzlich eintragen musst.";els.patternList.appendChild(empty);return;
