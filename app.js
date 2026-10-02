@@ -249,23 +249,35 @@
   }
   function recentEntries(days=7){const start=dayStart()-Math.max(0,days-1)*86400000;return entries.filter(item=>Date.parse(item.time)>=start)}
   function recentGaps(days=3){const gaps=[],base=dayStart();for(let i=0;i<days;i++)gaps.push(...gapMinutes(entriesForDay(base-i*86400000)));return gaps}
+  function snoozeUntil(days=7){const d=new Date();d.setDate(d.getDate()+days);return d.getTime()}
   function smartPauseSuggestion(){
-    if(!settings.smartPauseSuggestions)return null;
-    const gaps=recentGaps(3);
-    if(gaps.length<8)return null;
-    const goal=settings.pauseGoal,hit=gaps.filter(value=>value>=goal).length,rate=hit/gaps.length,avg=averageFromGaps(gaps);
-    if(rate>=.75&&avg!=null&&avg>=goal+2&&goal<240)return clamp(goal+5,5,240);
-    return null;
+    if(!settings.smartPauseSuggestions||Date.now()<settings.pauseSuggestionSnoozedUntil)return null;
+    const goal=settings.pauseGoal;
+    if(goal>=240)return null;
+    const changedDay=settings.pauseGoalChangedAt?dayStart(new Date(settings.pauseGoalChangedAt)):0;
+    const allGaps=[],today=new Date();
+    for(let i=1;i<=5;i++){
+      const date=new Date(today.getFullYear(),today.getMonth(),today.getDate()-i),start=dayStart(date);
+      if(changedDay&&start<=changedDay)return null;
+      const gaps=gapMinutes(entriesForDay(start));
+      if(!gaps.length)return null;
+      const hit=gaps.filter(value=>value>=goal).length;
+      if(hit/gaps.length<.75)return null;
+      allGaps.push(...gaps);
+    }
+    if(allGaps.length<8)return null;
+    const avg=averageFromGaps(allGaps);
+    return avg!=null&&avg>=goal+2?clamp(goal+5,5,240):null;
   }
   function renderSmartPauseSuggestion(){
     els.smartPauseToggle.checked=settings.smartPauseSuggestions;
     const suggestion=smartPauseSuggestion();
     els.smartPauseSuggestion.hidden=!suggestion;
-    if(suggestion)els.smartPauseText.textContent=`${suggestion} Min. ausprobieren?`;
+    if(suggestion)els.smartPauseText.textContent=`5 Tage stabil · ${suggestion} Min. ausprobieren?`;
   }
   function smartLimitSuggestion(){
     const limit=settings.limit;
-    if(limit<=1)return null;
+    if(limit<=1||Date.now()<settings.limitSuggestionSnoozedUntil)return null;
     const changedDay=settings.limitChangedAt?dayStart(new Date(settings.limitChangedAt)):0;
     const today=new Date();
     for(let i=1;i<=5;i++){
@@ -280,7 +292,7 @@
     const suggestion=smartLimitSuggestion();
     els.smartLimitSuggestion.hidden=!suggestion;
     if(!suggestion)return;
-    els.smartLimitText.textContent="5 Tage in Folge im Limit.";
+    els.smartLimitText.textContent="5 Trackingtage in Folge im Limit.";
     els.smartLimitHint.textContent=`Tageslimit auf ${suggestion} reduzieren?`;
   }
   function dayPart(hour){if(hour<5)return"Nacht";if(hour<9)return"Morgen";if(hour<12)return"Vormittag";if(hour<17)return"Nachmittag";if(hour<22)return"Abend";return"Nacht"}
