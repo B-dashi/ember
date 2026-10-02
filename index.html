@@ -189,23 +189,31 @@
           <div class="heatmap-peak" id="heatmapPeak">Noch zu wenig Daten</div>
         </div>
 
-        <div class="chart-card compact-day-card">
-          <div class="chart-title"><strong>Tagesverlauf</strong><span>Heute auf einen Blick</span></div>
-          <div class="analysis-mini-timeline" id="analysisDayTimeline" aria-hidden="true"></div>
-          <div class="analysis-mini-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
-          <div class="analysis-mini-empty" id="analysisDayEmpty">Heute noch keine Einträge.</div>
+        <div class="chart-card week-overview-card">
+          <div class="period-card-head">
+            <div class="chart-title"><strong>Woche</strong><span id="weekRangeTitle">–</span></div>
+            <div class="period-nav" aria-label="Woche wechseln">
+              <button id="weekPrev" type="button" aria-label="Vorherige Woche">‹</button>
+              <button id="weekNext" type="button" aria-label="Nächste Woche">›</button>
+            </div>
+          </div>
+          <div class="week-overview" id="weekOverview" aria-label="Wochenübersicht"></div>
+          <div class="period-hint">Tag antippen, um die Einträge zu sehen</div>
         </div>
 
         <div class="chart-card month-card">
-          <div class="month-card-head">
+          <div class="period-card-head">
             <div class="chart-title"><strong>Monat</strong><span id="monthCalendarTitle">–</span></div>
-            <span class="month-total" id="monthTotal">0 Einträge</span>
+            <div class="period-nav" aria-label="Monat wechseln">
+              <button id="monthPrev" type="button" aria-label="Vorheriger Monat">‹</button>
+              <button id="monthNext" type="button" aria-label="Nächster Monat">›</button>
+            </div>
           </div>
+          <div class="month-total" id="monthTotal">0 Einträge</div>
           <div class="month-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
           <div class="month-calendar" id="monthCalendar" aria-label="Monatsübersicht"></div>
+          <div class="period-hint">Tag antippen, um die Einträge zu sehen</div>
         </div>
-
-        <div class="chart-card"><div class="chart-title"><strong>Letzte 7 Tage</strong><span>Zigaretten pro Tag</span></div><div class="week-chart" id="weekChart"></div></div>
       </section>
     </section>
   </main>
@@ -263,7 +271,7 @@
 
   <section class="modal-sheet today-sheet" id="todaySheet" aria-hidden="true">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Tagesübersicht</div>
+    <div class="sheet-title" id="daySheetTitle">Tagesübersicht</div>
     <div class="today-sheet-summary" id="todaySheetSummary">Noch keine Einträge heute.</div>
     <div class="today-sheet-list" id="todaySheetList"></div>
     <button class="primary-sheet-button" id="closeTodaySheet" type="button">Fertig</button>
