@@ -2617,3 +2617,83 @@ html{
   background:rgba(182,146,67,.12);
   color:#d6b65f;
 }
+
+/* Ember v33: cleaner week states + summary hierarchy */
+
+/* Manual days use the same quiet dot in week and month; no text badge. */
+.week-day{
+  position:relative;
+}
+.week-day.is-manual,
+.month-day.is-manual{
+  outline:none;
+}
+.week-day.is-manual>small{
+  display:block;
+  width:auto;
+  max-width:none;
+  min-height:0;
+  margin:0;
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--muted);
+  font-size:7.5px;
+  font-weight:560;
+  line-height:1;
+  letter-spacing:0;
+  overflow:visible;
+}
+.week-day.is-manual::after,
+.month-day.is-manual::after{
+  content:"";
+  position:absolute;
+  right:5px;
+  top:5px;
+  left:auto;
+  bottom:auto;
+  width:5px;
+  height:5px;
+  transform:none;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+  opacity:.9;
+}
+
+/* A day above the daily limit is immediately recognizable without turning the whole card red. */
+.week-day.is-over-limit,
+.month-day.is-over-limit{
+  outline:2px solid #d87567;
+  outline-offset:-2px;
+}
+.week-day.is-over-limit>strong,
+.month-day.is-over-limit small{
+  color:#b85f53;
+}
+
+/* The average is now the primary number; total entries remain important just below it. */
+.period-summary-primary{
+  align-items:center;
+}
+.period-summary-primary strong{
+  font-size:31px;
+}
+.period-summary-metrics>div:first-child strong{
+  font-size:17px;
+}
+
+/* Dark mode state accents. */
+:root[data-theme="dark"] .week-day.is-manual::after,
+:root[data-theme="dark"] .month-day.is-manual::after{
+  background:var(--accent-2);
+  box-shadow:0 0 0 2px rgba(211,177,91,.10);
+}
+:root[data-theme="dark"] .week-day.is-over-limit,
+:root[data-theme="dark"] .month-day.is-over-limit{
+  outline-color:#b9685d;
+}
+:root[data-theme="dark"] .week-day.is-over-limit>strong,
+:root[data-theme="dark"] .month-day.is-over-limit small{
+  color:#e39487;
+}
