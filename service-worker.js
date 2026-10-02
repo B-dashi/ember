@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v28-period-navigation";
+const CACHE = "ember-violet-v29-import-limit-suggestions";
 const SHELL = [
   "./",
   "./index.html",
