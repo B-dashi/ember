@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v22-statusbar-blend";
+const CACHE = "ember-violet-v23-day-summary";
 const SHELL = [
   "./",
   "./index.html",
