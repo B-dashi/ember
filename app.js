@@ -550,6 +550,46 @@
     if(!els.analysisView.hidden)return els.analysisView;
     return els.homeView;
   }
+  function sheetsOpen(){
+    return [els.pauseConfirmSheet,els.backfillSheet,els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet]
+      .some(sheet=>sheet&&sheet.getAttribute("aria-hidden")==="false");
+  }
+  function setupSwipeNavigation(){
+    let startX=0,startY=0,startTime=0,tracking=false,mode="";
+    const RIGHT_EDGE=42,IOS_LEFT_GUARD=54,MIN_DISTANCE=78,MAX_VERTICAL=62,MAX_TIME=650;
+    document.addEventListener("touchstart",event=>{
+      if(event.touches.length!==1||sheetsOpen())return;
+      const touch=event.touches[0],view=currentView(),width=window.innerWidth;
+      mode="";
+      if(view===els.homeView&&touch.clientX>=width-RIGHT_EDGE)mode="open-settings";
+      else if(view===els.settingsView&&touch.clientX>IOS_LEFT_GUARD)mode="back-home";
+      if(!mode)return;
+      startX=touch.clientX;
+      startY=touch.clientY;
+      startTime=Date.now();
+      tracking=true;
+    },{passive:true});
+    document.addEventListener("touchmove",event=>{
+      if(!tracking||event.touches.length!==1)return;
+      const touch=event.touches[0],dx=touch.clientX-startX,dy=Math.abs(touch.clientY-startY);
+      if(dy>MAX_VERTICAL||Date.now()-startTime>MAX_TIME){tracking=false;return}
+      if(mode==="open-settings"&&dx<-MIN_DISTANCE){
+        tracking=false;
+        showView(els.settingsView);
+      }else if(mode==="back-home"&&dx>MIN_DISTANCE){
+        tracking=false;
+        showView(els.homeView);
+      }
+    },{passive:true});
+    document.addEventListener("touchend",()=>{tracking=false},{passive:true});
+    document.addEventListener("touchcancel",()=>{tracking=false},{passive:true});
+  }
+
+  function currentView(){
+    if(!els.settingsView.hidden)return els.settingsView;
+    if(!els.analysisView.hidden)return els.analysisView;
+    return els.homeView;
+  }
   function gestureBlockedTarget(target){
     return Boolean(target.closest("button,input,select,textarea,.modal-sheet,.toast,.today-sheet-list"));
   }
@@ -687,5 +727,5 @@
   document.addEventListener("touchstart",handleTouchStart,{passive:true});
   document.addEventListener("touchend",handleTouchEnd,{passive:true});
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();if(els.pauseConfirmSheet.getAttribute("aria-hidden")==="false"){if(!renderPauseConfirm())closeSheets()}renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
-  applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+  applyTheme();render();showView(els.homeView);setupSwipeNavigation();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
