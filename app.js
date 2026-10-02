@@ -8,7 +8,7 @@
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),
-    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),todaySheetSummary:$("todaySheetSummary"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
+    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySheetTitle:$("daySheetTitle"),todaySheetSummary:$("todaySheetSummary"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
@@ -16,10 +16,10 @@
     pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     exportDataButton:$("exportDataButton"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
-    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),analysisDayTimeline:$("analysisDayTimeline"),analysisDayEmpty:$("analysisDayEmpty"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),weekChart:$("weekChart"),
+    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
-  let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null;
+  let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null, analysisWeekOffset=0, analysisMonthOffset=0;
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
@@ -29,7 +29,7 @@
   function loadSettings(){const fallback={limit:20,theme:"violet",pauseGoal:50,smartPauseSuggestions:true,smartPauseUserSet:false};try{const raw=JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}");const migrated=THEME_MIGRATION[raw.theme]||raw.theme;const userSet=Boolean(raw.smartPauseUserSet);return{limit:Number.isFinite(Number(raw.limit))?clamp(Math.round(Number(raw.limit)),1,99):20,theme:THEMES[migrated]?migrated:"violet",pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,smartPauseSuggestions:userSet?Boolean(raw.smartPauseSuggestions):true,smartPauseUserSet:userSet}}catch{return fallback}}
   const saveEntries=()=>localStorage.setItem(STORAGE_ENTRIES,JSON.stringify(entries));
   const saveSettings=()=>localStorage.setItem(STORAGE_SETTINGS,JSON.stringify(settings));
-  function entriesForDay(start){const end=start+86400000;return entries.filter(item=>{const t=Date.parse(item.time);return t>=start&&t<end})}
+  function entriesForDay(start){const d=new Date(start),from=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),next=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();return entries.filter(item=>{const t=Date.parse(item.time);return t>=from&&t<next})}
   const todaysEntries=()=>entriesForDay(dayStart());
   function gapMinutes(list){const gaps=[];for(let i=1;i<list.length;i++){const mins=Math.round((Date.parse(list[i].time)-Date.parse(list[i-1].time))/60000);if(mins>=0)gaps.push(mins)}return gaps}
   function averageFromGaps(gaps){if(!gaps.length)return null;return Math.round(gaps.reduce((sum,value)=>sum+value,0)/gaps.length)}
@@ -99,15 +99,49 @@
     const peakIndex=buckets.indexOf(max),start=peakIndex*2,end=start+2;
     els.heatmapPeak.textContent=`Am häufigsten: ${String(start).padStart(2,"0")}–${String(end).padStart(2,"0")} Uhr`;
   }
-  function renderAnalysisDayTimeline(today){
-    renderTimelineDots(els.analysisDayTimeline,today);
-    els.analysisDayEmpty.hidden=today.length>0;
-  }
   function localDateKey(date){
     return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
   }
+  function startOfWeek(date=new Date()){
+    const d=new Date(date.getFullYear(),date.getMonth(),date.getDate()),weekday=(d.getDay()+6)%7;
+    d.setDate(d.getDate()-weekday);
+    return d;
+  }
+  function addDays(date,amount){
+    const d=new Date(date);
+    d.setDate(d.getDate()+amount);
+    return d;
+  }
+  function isSameLocalDay(a,b){
+    return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  }
+  function shortDayDate(date){
+    return new Intl.DateTimeFormat("de-AT",{day:"numeric",month:"short"}).format(date).replace(".","");
+  }
+  function renderWeekOverview(){
+    const now=new Date(),anchor=addDays(now,analysisWeekOffset*7),monday=startOfWeek(anchor),sunday=addDays(monday,6);
+    els.weekRangeTitle.textContent=`${shortDayDate(monday)} – ${shortDayDate(sunday)}`;
+    els.weekNext.disabled=analysisWeekOffset>=0;
+    els.weekOverview.innerHTML="";
+    const days=Array.from({length:7},(_,i)=>addDays(monday,i));
+    const counts=days.map(date=>entriesForDay(dayStart(date)).length),max=Math.max(...counts,1);
+    days.forEach((date,index)=>{
+      const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now);
+      const weekday=new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(date).replace(".","");
+      const level=count===0?0:Math.max(1,Math.ceil(count/max*4));
+      button.type="button";
+      button.className="week-day";
+      button.dataset.level=String(level);
+      if(isSameLocalDay(date,now))button.classList.add("is-today");
+      if(future){button.classList.add("is-future");button.disabled=true}
+      button.innerHTML=`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${count===1?"Eintrag":"Einträge"}</small>`;
+      button.setAttribute("aria-label",`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      if(!future)button.addEventListener("click",()=>openDaySheet(date));
+      els.weekOverview.appendChild(button);
+    });
+  }
   function renderMonthCalendar(){
-    const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+    const now=new Date(),selected=new Date(now.getFullYear(),now.getMonth()+analysisMonthOffset,1),year=selected.getFullYear(),month=selected.getMonth();
     const first=new Date(year,month,1),daysInMonth=new Date(year,month+1,0).getDate();
     const counts=new Map();
     entries.forEach(entry=>{
@@ -121,6 +155,7 @@
     const title=new Intl.DateTimeFormat("de-AT",{month:"long",year:"numeric"}).format(first);
     els.monthCalendarTitle.textContent=title.charAt(0).toUpperCase()+title.slice(1);
     els.monthTotal.textContent=`${total} ${total===1?"Eintrag":"Einträge"}`;
+    els.monthNext.disabled=analysisMonthOffset>=0;
     els.monthCalendar.innerHTML="";
     const offset=(first.getDay()+6)%7;
     for(let i=0;i<offset;i++){
@@ -130,31 +165,40 @@
       els.monthCalendar.appendChild(blank);
     }
     for(let day=1;day<=daysInMonth;day++){
-      const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("span");
-      const level=count===0?0:Math.max(1,Math.ceil(count/Math.max(max,1)*4));
+      const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("button");
+      const level=count===0?0:Math.max(1,Math.ceil(count/Math.max(max,1)*4)),future=date>now&&!isSameLocalDay(date,now);
+      cell.type="button";
       cell.className="month-day";
       cell.dataset.level=String(level);
-      if(day===now.getDate())cell.classList.add("is-today");
-      if(date>now&&day!==now.getDate())cell.classList.add("is-future");
+      if(isSameLocalDay(date,now))cell.classList.add("is-today");
+      if(future){cell.classList.add("is-future");cell.disabled=true}
       cell.innerHTML=`<b>${day}</b>${count?`<small>${count}</small>`:""}`;
-      cell.setAttribute("aria-label",`${day}. ${els.monthCalendarTitle.textContent}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      cell.setAttribute("aria-label",`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      if(!future)cell.addEventListener("click",()=>openDaySheet(date));
       els.monthCalendar.appendChild(cell);
     }
   }
-  function renderTodaySheet(){
-    const today=todaysEntries(),gaps=gapMinutes(today),best=longestGap(gaps);
-    els.todaySheetSummary.textContent=today.length
-      ?`${today.length} ${today.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(today[0].time))} · Beste Pause ${formatGap(best)}`
-      :"Noch keine Einträge heute.";
+  function renderDaySheet(date=new Date()){
+    const start=dayStart(date),list=entriesForDay(start),gaps=gapMinutes(list),best=longestGap(gaps);
+    els.daySheetTitle.textContent=formatDate(new Date(start));
+    els.todaySheetSummary.textContent=list.length
+      ?`${list.length} ${list.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(list[0].time))} · Beste Pause ${formatGap(best)}`
+      :"Keine Einträge an diesem Tag.";
     els.todaySheetList.innerHTML="";
-    [...today].reverse().forEach((entry,index)=>{
+    [...list].reverse().forEach((entry,index)=>{
       const row=document.createElement("button");
       row.type="button";
       row.className="today-sheet-row";
-      row.innerHTML=`<span><strong>${formatTime(new Date(entry.time))}</strong><small>${relativeTime(new Date(entry.time))}</small></span><span>${today.length-index}. ›</span>`;
+      const number=list.length-index;
+      row.innerHTML=`<span><strong>${formatTime(new Date(entry.time))}</strong><small>${number}. Eintrag</small></span><span>›</span>`;
       row.addEventListener("click",()=>openEdit(entry.id));
       els.todaySheetList.appendChild(row);
     });
+  }
+  function renderTodaySheet(){renderDaySheet(new Date())}
+  function openDaySheet(date){
+    renderDaySheet(date);
+    openSheet(els.todaySheet);
   }
   function formatGap(mins){if(mins==null)return"–";if(mins<=0)return"< 1 Min.";if(mins<60)return`${mins} Min.`;const h=Math.floor(mins/60),m=mins%60;return m?`${h} Std. ${m} Min.`:`${h} Std.`}
   function latestEntry(){return entries.length?entries[entries.length-1]:null}
@@ -181,7 +225,7 @@
     }else{
       els.homePauseValue.textContent=`${status.elapsed<1?0:status.elapsed} Min.`;
       els.homePauseHint.textContent=status.state==="close"
-        ?`noch ${status.remaining} Min. · fast geschafft`
+        ?`noch ${status.remaining} Min.`
         :`noch ${status.remaining} Min.`;
     }
     els.pauseCardHome.dataset.state=status.state;
@@ -248,7 +292,7 @@
     els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;
     els.settingsPauseValue.textContent=settings.pauseGoal;
     renderSmartPauseSuggestion();
-    els.analysisComparisonCount.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"}`;
+    els.analysisComparisonCount.textContent=`${count} heute`;
     els.analysisComparisonText.textContent=comparisonCopy(count);
     renderDaySummary(today);
     renderTodaySheet();
@@ -293,24 +337,8 @@
       els.analysisCurrentPause.dataset.state="empty";
     }
     renderTimeHeatmap();
-    renderAnalysisDayTimeline(today);
+    renderWeekOverview();
     renderMonthCalendar();
-
-    const days=[],base=dayStart();
-    for(let i=6;i>=0;i--){
-      const start=base-i*86400000,date=new Date(start);
-      days.push({start,date,count:entriesForDay(start).length});
-    }
-    const max=Math.max(settings.limit,...days.map(d=>d.count),1);
-    els.weekChart.innerHTML="";
-    days.forEach(day=>{
-      const col=document.createElement("div");
-      col.className="day-bar";
-      const pct=Math.max(3,Math.round(day.count/max*100));
-      const label=new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(day.date).replace(".","");
-      col.innerHTML=`<span class="bar-count">${day.count}</span><span class="bar-track"><span class="bar-fill" style="height:${pct}%"></span></span><span class="bar-label">${label}</span>`;
-      els.weekChart.appendChild(col);
-    });
   }
   function showView(view){[els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});window.scrollTo({top:0,behavior:"instant"})}
   function addEntry(){const id=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,entry={id,time:new Date().toISOString()};entries.push(entry);entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();lastAddedId=id;render();showToast(`${formatTime(new Date(entry.time))} gespeichert`,true)}
@@ -324,10 +352,14 @@
   function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();setTimeout(()=>showToast("Eintrag gelöscht",false),240)}
   function setTheme(theme){if(!THEMES[theme])return;settings.theme=theme;saveSettings();applyTheme();render()}
   function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-  els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>{renderTodaySheet();openSheet(els.todaySheet)});els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
+  els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);saveSettings();render()});els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);saveSettings();render()});els.closeLimitSheet.addEventListener("click",()=>closeSheets());
   els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render()});els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
+  els.weekPrev.addEventListener("click",()=>{analysisWeekOffset--;renderWeekOverview()});
+  els.weekNext.addEventListener("click",()=>{if(analysisWeekOffset<0){analysisWeekOffset++;renderWeekOverview()}});
+  els.monthPrev.addEventListener("click",()=>{analysisMonthOffset--;renderMonthCalendar()});
+  els.monthNext.addEventListener("click",()=>{if(analysisMonthOffset<0){analysisMonthOffset++;renderMonthCalendar()}});
   els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();els.analysisComparisonText.textContent=comparisonCopy(t.length);renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
