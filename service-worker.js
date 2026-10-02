@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v32-swipe-manual-badge";
+const CACHE = "ember-violet-v33-week-swipe-summary";
 const SHELL = [
   "./",
   "./index.html",
