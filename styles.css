@@ -1347,3 +1347,28 @@ html{
 .day-mini-axis span{text-align:center}
 .day-mini-axis span:first-child{text-align:left}
 .day-mini-axis span:last-child{text-align:right}
+
+/* Ember v26: Tagesverlauf ohne überlappende Uhrzeiten */
+.timeline-event.cluster .timeline-event-time{
+  min-width:max-content;
+  padding:3px 6px;
+  font-size:9px;
+  font-weight:720;
+}
+.timeline-event.cluster .timeline-event-dot{
+  min-width:28px;
+  width:auto;
+  padding:0 5px;
+}
+.timeline-event.lane-a.cluster .timeline-event-time{
+  top:6px;
+}
+.timeline-event.lane-b.cluster .timeline-event-time{
+  bottom:6px;
+}
+@media(max-width:390px){
+  .timeline-event.cluster .timeline-event-time{
+    font-size:8.5px;
+    padding:3px 5px;
+  }
+}
