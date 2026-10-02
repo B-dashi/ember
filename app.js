@@ -18,10 +18,10 @@
     backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
     analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisRemainingCard:$("analysisRemainingCard"),analysisRemainingTitle:$("analysisRemainingTitle"),analysisRemainingLabel:$("analysisRemainingLabel"),summaryWeekButton:$("summaryWeekButton"),summaryMonthButton:$("summaryMonthButton"),periodSummaryRange:$("periodSummaryRange"),periodSummaryLabel:$("periodSummaryLabel"),periodSummaryTotal:$("periodSummaryTotal"),periodSummaryAverage:$("periodSummaryAverage"),periodSummaryWithinLimit:$("periodSummaryWithinLimit"),periodSummaryBestPause:$("periodSummaryBestPause"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),daypartMorning:$("daypartMorning"),daypartNoon:$("daypartNoon"),daypartAfternoon:$("daypartAfternoon"),daypartEvening:$("daypartEvening"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
-    toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
+    pageDots:$("pageDots"),analysisDot:$("analysisDot"),homeDot:$("homeDot"),settingsDot:$("settingsDot"),toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
+  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, pageTransitioning=false, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
@@ -546,56 +546,144 @@
     renderWeekOverview();
     renderMonthCalendar();
   }
-  function showView(view){[els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});window.scrollTo({top:0,behavior:"instant"})}
+  const PAGE_ORDER=()=>[els.analysisView,els.homeView,els.settingsView];
   function currentView(){
-    if(!els.settingsView.hidden)return els.settingsView;
     if(!els.analysisView.hidden)return els.analysisView;
+    if(!els.settingsView.hidden)return els.settingsView;
     return els.homeView;
+  }
+  function pageIndex(view){return PAGE_ORDER().indexOf(view)}
+  function updatePageDots(view){
+    const dots=[[els.analysisView,els.analysisDot],[els.homeView,els.homeDot],[els.settingsView,els.settingsDot]];
+    dots.forEach(([page,dot])=>{
+      const active=page===view;
+      dot.classList.toggle("is-active",active);
+      if(active)dot.setAttribute("aria-current","page");else dot.removeAttribute("aria-current");
+    });
+  }
+  function cleanupViewMotion(view){
+    if(!view)return;
+    view.classList.remove("page-entering","page-leaving","swipe-dragging","swipe-snapback");
+    view.style.transform="";
+    view.style.opacity="";
+    view.style.transition="";
+    view.style.zIndex="";
+  }
+  function showView(view,options={}){
+    const old=currentView(),instant=Boolean(options.instant);
+    if(old===view){
+      [els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});
+      updatePageDots(view);
+      return;
+    }
+    if(pageTransitioning)return;
+    const oldIndex=pageIndex(old),newIndex=pageIndex(view),direction=newIndex>oldIndex?1:-1;
+    window.scrollTo({top:0,behavior:"instant"});
+    if(instant||window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      [els.homeView,els.settingsView,els.analysisView].forEach(v=>{cleanupViewMotion(v);v.hidden=v!==view;v.classList.toggle("is-active",v===view)});
+      updatePageDots(view);
+      return;
+    }
+
+    pageTransitioning=true;
+    cleanupViewMotion(old);
+    cleanupViewMotion(view);
+    view.hidden=false;
+    view.classList.add("is-active","page-entering");
+    old.classList.add("page-leaving");
+    old.style.zIndex="1";
+    view.style.zIndex="2";
+    view.style.transform=`translate3d(${direction*34}%,0,0) scale(.985)`;
+    view.style.opacity=".35";
+    old.style.transform="translate3d(0,0,0) scale(1)";
+    old.style.opacity="1";
+    void view.offsetWidth;
+    const transition="transform 300ms cubic-bezier(.22,.78,.24,1), opacity 260ms ease";
+    view.style.transition=transition;
+    old.style.transition=transition;
+    requestAnimationFrame(()=>{
+      view.style.transform="translate3d(0,0,0) scale(1)";
+      view.style.opacity="1";
+      old.style.transform=`translate3d(${-direction*14}%,0,0) scale(.985)`;
+      old.style.opacity=".42";
+      updatePageDots(view);
+    });
+    setTimeout(()=>{
+      old.hidden=true;
+      old.classList.remove("is-active");
+      cleanupViewMotion(old);
+      cleanupViewMotion(view);
+      pageTransitioning=false;
+    },320);
   }
   function sheetsOpen(){
     return [els.pauseConfirmSheet,els.backfillSheet,els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet]
       .some(sheet=>sheet&&sheet.getAttribute("aria-hidden")==="false");
   }
   function setupSwipeNavigation(){
-    let startX=null,startY=null,startView=null,startTime=0,suppressNextClick=false;
-    const MIN_DISTANCE=72,MAX_VERTICAL=68,MAX_TIME=700,LEFT_EDGE=46,CENTER_MIN=.14,CENTER_MAX=.86;
-    document.addEventListener("touchstart",event=>{
-      if(event.touches.length!==1||sheetsOpen())return;
-      const touch=event.touches[0],view=currentView(),ratio=touch.clientX/window.innerWidth;
-      if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
-      if(view===els.homeView){
-        if(ratio<CENTER_MIN||ratio>CENTER_MAX)return;
-      }else if(touch.clientX>LEFT_EDGE){
-        return;
+    let startX=null,startY=null,startTime=0,startView=null,dragging=false,suppressClick=false;
+    const MIN_DISTANCE=58,MIN_VELOCITY=.34,MAX_VERTICAL_RATIO=1.05;
+    const reset=()=>{
+      if(startView){
+        startView.classList.remove("swipe-dragging");
+        startView.style.transform="";
+        startView.style.opacity="";
       }
+      startX=startY=startTime=startView=null;
+      dragging=false;
+    };
+    document.addEventListener("touchstart",event=>{
+      if(event.touches.length!==1||sheetsOpen()||pageTransitioning)return;
+      if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
+      const touch=event.touches[0];
       startX=touch.clientX;
       startY=touch.clientY;
-      startView=view;
       startTime=Date.now();
+      startView=currentView();
+      dragging=false;
     },{passive:true});
-    document.addEventListener("touchend",event=>{
-      if(startX==null||startY==null||!startView)return;
-      const touch=event.changedTouches[0],dx=touch.clientX-startX,dy=Math.abs(touch.clientY-startY),elapsed=Date.now()-startTime;
-      const horizontal=Math.abs(dx)>=MIN_DISTANCE&&dy<=MAX_VERTICAL&&Math.abs(dx)>dy*1.25&&elapsed<=MAX_TIME;
-      if(horizontal){
-        if(startView===els.homeView&&dx<0){
-          suppressNextClick=true;
-          showView(els.settingsView);
-        }else if(startView===els.homeView&&dx>0){
-          suppressNextClick=true;
-          showView(els.analysisView);
-        }else if((startView===els.settingsView||startView===els.analysisView)&&dx>0){
-          suppressNextClick=true;
-          showView(els.homeView);
-        }
+
+    document.addEventListener("touchmove",event=>{
+      if(startX==null||!startView||event.touches.length!==1)return;
+      const touch=event.touches[0],dx=touch.clientX-startX,dy=touch.clientY-startY;
+      if(!dragging){
+        if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)){reset();return}
+        if(Math.abs(dx)<10)return;
+        dragging=Math.abs(dx)>Math.abs(dy)*1.08;
+        if(!dragging)return;
+        startView.classList.add("swipe-dragging");
       }
-      startX=startY=startView=null;
-      startTime=0;
+      if(event.cancelable)event.preventDefault();
+      const index=pageIndex(startView),canMove=(dx<0&&index<PAGE_ORDER().length-1)||(dx>0&&index>0);
+      const resistance=canMove?0.18:0.055;
+      startView.style.transform=`translate3d(${dx*resistance}px,0,0) scale(.997)`;
+      startView.style.opacity=String(canMove?Math.max(.9,1-Math.abs(dx)/1800):.96);
+    },{passive:false});
+
+    document.addEventListener("touchend",event=>{
+      if(startX==null||!startView)return;
+      const touch=event.changedTouches[0],dx=touch.clientX-startX,dy=touch.clientY-startY,elapsed=Math.max(1,Date.now()-startTime);
+      const velocity=Math.abs(dx)/elapsed,horizontal=Math.abs(dx)>Math.abs(dy)*MAX_VERTICAL_RATIO;
+      const qualifies=horizontal&&(Math.abs(dx)>=MIN_DISTANCE||velocity>=MIN_VELOCITY);
+      const index=pageIndex(startView),targetIndex=dx<0?index+1:index-1,target=PAGE_ORDER()[targetIndex];
+      startView.style.transform="";
+      startView.style.opacity="";
+      startView.classList.remove("swipe-dragging");
+      if(qualifies&&target){
+        suppressClick=true;
+        showView(target);
+      }else{
+        startView.classList.add("swipe-snapback");
+        setTimeout(()=>startView&&startView.classList.remove("swipe-snapback"),220);
+      }
+      startX=startY=startTime=startView=null;
+      dragging=false;
     },{passive:true});
-    document.addEventListener("touchcancel",()=>{startX=startY=startView=null;startTime=0},{passive:true});
+
+    document.addEventListener("touchcancel",reset,{passive:true});
     document.addEventListener("click",event=>{
-      if(!suppressNextClick)return;
-      suppressNextClick=false;
+      if(!suppressClick)return;
+      suppressClick=false;
       event.preventDefault();
       event.stopPropagation();
     },true);
@@ -663,7 +751,7 @@
       els.importDataInput.value="";
     }
   }
-  els.addButton.addEventListener("click",requestAddEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
+  els.addButton.addEventListener("click",requestAddEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.analysisDot.addEventListener("click",()=>showView(els.analysisView));els.homeDot.addEventListener("click",()=>showView(els.homeView));els.settingsDot.addEventListener("click",()=>showView(els.settingsView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.pauseWaitButton.addEventListener("click",()=>closeSheets());
   els.pauseAddAnywayButton.addEventListener("click",()=>{closeSheets();addEntry()});
   els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
@@ -701,8 +789,6 @@
   els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];manualDailyCounts={};saveEntries();saveManualCounts();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
   els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
-  document.addEventListener("touchstart",handleTouchStart,{passive:true});
-  document.addEventListener("touchend",handleTouchEnd,{passive:true});
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();if(els.pauseConfirmSheet.getAttribute("aria-hidden")==="false"){if(!renderPauseConfirm())closeSheets()}renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
-  applyTheme();render();showView(els.homeView);setupSwipeNavigation();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+  applyTheme();render();showView(els.homeView,{instant:true});setupSwipeNavigation();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
