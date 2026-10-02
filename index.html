@@ -46,7 +46,7 @@
       </section>
 
       <section class="home-content">
-        <button class="add-button" id="addButton" type="button"><span class="add-plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Zigarette hinzufügen</span></button>
+        <button class="add-button" id="addButton" type="button"><span class="add-plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="add-divider" aria-hidden="true"></span><span>Zigarette hinzufügen</span></button>
 
         <button class="info-card" id="lastCard" type="button" aria-label="Letzte Zigarette bearbeiten">
           <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.4 2.1"/></svg></span>
@@ -92,19 +92,6 @@
           <span class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2"/><circle cx="15.5" cy="7" r="1.6"/><circle cx="7" cy="15" r="1.6"/><path d="M12 4a8 8 0 1 0 0 16c1.2 0 2-.7 2-1.6 0-.7-.5-1.2-.5-1.8 0-1.1.9-1.8 2-1.8h1.2c1.9 0 3.3-1.4 3.3-3.5A7.3 7.3 0 0 0 12 4Z"/></svg></span>
           <span class="tile-copy"><strong>Design</strong><span id="designTileValue">Violett</span></span><span class="chevron">›</span>
         </button>
-
-        <div class="settings-tile color-tile">
-          <span class="tile-icon"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.1 6 10.9A6 6 0 0 1 6 14c0-4.9 6-11 6-11Z"/></svg></span>
-          <span class="tile-copy"><strong>Farben</strong>
-            <span class="color-row" id="colorRow" role="radiogroup" aria-label="Farbschema auswählen">
-              <button class="color-choice blue" data-theme="blue" type="button" aria-label="Blau"></button>
-              <button class="color-choice terracotta" data-theme="terracotta" type="button" aria-label="Terrakotta"></button>
-              <button class="color-choice green" data-theme="green" type="button" aria-label="Grün"></button>
-              <button class="color-choice violet" data-theme="violet" type="button" aria-label="Violett"></button>
-            </span>
-          </span>
-          <span class="chevron">›</span>
-        </div>
 
         <button class="settings-tile" id="dataTile" type="button">
           <span class="tile-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="6" ry="3"/><path d="M6 6v6c0 1.7 2.7 3 6 3s6-1.3 6-3V6M6 12v6c0 1.7 2.7 3 6 3s6-1.3 6-3v-6"/></svg></span>
