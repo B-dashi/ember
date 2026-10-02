@@ -91,12 +91,16 @@
     renderMiniTimeline(today);
   }
   function renderTimeHeatmap(){
-    const recent=recentEntries(30),buckets=Array(12).fill(0);
+    const recent=recentEntries(30),buckets=Array(12).fill(0),parts={morning:0,noon:0,afternoon:0,evening:0};
     recent.forEach(entry=>{
       const hour=new Date(entry.time).getHours();
       buckets[Math.floor(hour/2)]++;
+      if(hour>=5&&hour<11)parts.morning++;
+      else if(hour>=11&&hour<14)parts.noon++;
+      else if(hour>=14&&hour<18)parts.afternoon++;
+      else parts.evening++;
     });
-    const max=Math.max(...buckets,0);
+    const max=Math.max(...buckets,0),total=recent.length;
     els.timeHeatmap.innerHTML="";
     buckets.forEach((count,index)=>{
       const cell=document.createElement("span"),start=index*2,end=start+2;
@@ -107,6 +111,11 @@
       cell.title=`${String(start).padStart(2,"0")}–${String(end).padStart(2,"0")} · ${count}`;
       els.timeHeatmap.appendChild(cell);
     });
+    const pct=value=>total?`${Math.round(value/total*100)} %`:"–";
+    els.daypartMorning.textContent=pct(parts.morning);
+    els.daypartNoon.textContent=pct(parts.noon);
+    els.daypartAfternoon.textContent=pct(parts.afternoon);
+    els.daypartEvening.textContent=pct(parts.evening);
     if(!max){
       els.heatmapPeak.textContent="Noch keine Daten für ein Zeitmuster";
       return;
@@ -133,6 +142,43 @@
   function shortDayDate(date){
     return new Intl.DateTimeFormat("de-AT",{day:"numeric",month:"short"}).format(date).replace(".","");
   }
+  function periodStats(startDate,endDate){
+    const now=new Date(),todayStart=dayStart(now);
+    let cursor=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate());
+    const end=new Date(endDate.getFullYear(),endDate.getMonth(),endDate.getDate());
+    let total=0,trackedDays=0,withinLimit=0,bestPause=null;
+    while(cursor<end&&dayStart(cursor)<=todayStart){
+      const list=entriesForDay(dayStart(cursor));
+      if(list.length){
+        trackedDays++;
+        total+=list.length;
+        if(list.length<=settings.limit)withinLimit++;
+        const best=longestGap(gapMinutes(list));
+        if(best!=null&&(bestPause==null||best>bestPause))bestPause=best;
+      }
+      cursor=addDays(cursor,1);
+    }
+    return{total,trackedDays,withinLimit,bestPause,average:trackedDays?total/trackedDays:null};
+  }
+  function renderPeriodSummary(){
+    const now=new Date(),weekStart=startOfWeek(now),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+    const isWeek=analysisSummaryMode==="week";
+    const start=isWeek?weekStart:monthStart,end=isWeek?addDays(weekStart,7):new Date(now.getFullYear(),now.getMonth()+1,1);
+    const stats=periodStats(start,end);
+    els.summaryWeekButton.classList.toggle("is-active",isWeek);
+    els.summaryMonthButton.classList.toggle("is-active",!isWeek);
+    els.summaryWeekButton.setAttribute("aria-pressed",String(isWeek));
+    els.summaryMonthButton.setAttribute("aria-pressed",String(!isWeek));
+    els.periodSummaryRange.textContent=isWeek?`${shortDayDate(start)} – ${shortDayDate(addDays(start,6))}`:new Intl.DateTimeFormat("de-AT",{month:"long",year:"numeric"}).format(start);
+    els.periodSummaryLabel.textContent=isWeek?"Einträge diese Woche":"Einträge diesen Monat";
+    els.periodSummaryTotal.textContent=String(stats.total);
+    els.periodSummaryAverage.textContent=stats.average==null?"–":stats.average.toLocaleString("de-AT",{minimumFractionDigits:stats.average%1?1:0,maximumFractionDigits:1});
+    els.periodSummaryWithinLimit.textContent=stats.trackedDays?`${stats.withinLimit}/${stats.trackedDays}`:"–";
+    els.periodSummaryBestPause.textContent=formatGap(stats.bestPause);
+    els.periodSummaryNote.textContent=stats.trackedDays
+      ?`${stats.trackedDays} ${stats.trackedDays===1?"Trackingtag":"Trackingtage"} erfasst · Tage ohne Einträge zählen nicht als 0.`
+      :"Noch keine Trackingtage in diesem Zeitraum.";
+  }
   function renderWeekOverview(){
     const now=new Date(),anchor=addDays(now,analysisWeekOffset*7),monday=startOfWeek(anchor),sunday=addDays(monday,6);
     els.weekRangeTitle.textContent=`${shortDayDate(monday)} – ${shortDayDate(sunday)}`;
@@ -141,16 +187,19 @@
     const days=Array.from({length:7},(_,i)=>addDays(monday,i));
     const counts=days.map(date=>entriesForDay(dayStart(date)).length),max=Math.max(...counts,1);
     days.forEach((date,index)=>{
-      const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now);
+      const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now),tracked=count>0;
       const weekday=new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(date).replace(".","");
-      const level=count===0?0:Math.max(1,Math.ceil(count/max*4));
+      const level=tracked?Math.max(1,Math.ceil(count/max*4)):0;
       button.type="button";
       button.className="week-day";
       button.dataset.level=String(level);
       if(isSameLocalDay(date,now))button.classList.add("is-today");
+      if(!tracked&&!future)button.classList.add("is-untracked");
       if(future){button.classList.add("is-future");button.disabled=true}
-      button.innerHTML=`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${count===1?"Eintrag":"Einträge"}</small>`;
-      button.setAttribute("aria-label",`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      button.innerHTML=tracked
+        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${count===1?"Eintrag":"Einträge"}</small>`
+        :`<span>${weekday}</span><b>${date.getDate()}</b><strong>–</strong><small>${future?"":"Keine Daten"}</small>`;
+      button.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:tracked?`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`:`${formatDate(date)}: keine Trackingdaten`);
       if(!future)button.addEventListener("click",()=>openDaySheet(date));
       els.weekOverview.appendChild(button);
     });
@@ -181,24 +230,36 @@
     }
     for(let day=1;day<=daysInMonth;day++){
       const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("button");
-      const level=count===0?0:Math.max(1,Math.ceil(count/Math.max(max,1)*4)),future=date>now&&!isSameLocalDay(date,now);
+      const future=date>now&&!isSameLocalDay(date,now),tracked=count>0,level=tracked?Math.max(1,Math.ceil(count/Math.max(max,1)*4)):0;
       cell.type="button";
       cell.className="month-day";
       cell.dataset.level=String(level);
       if(isSameLocalDay(date,now))cell.classList.add("is-today");
+      if(!tracked&&!future)cell.classList.add("is-untracked");
       if(future){cell.classList.add("is-future");cell.disabled=true}
-      cell.innerHTML=`<b>${day}</b>${count?`<small>${count}</small>`:""}`;
-      cell.setAttribute("aria-label",`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`);
+      cell.innerHTML=`<b>${day}</b>${tracked?`<small>${count}</small>`:(!future?"<small>–</small>":"")}`;
+      cell.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:tracked?`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`:`${formatDate(date)}: keine Trackingdaten`);
       if(!future)cell.addEventListener("click",()=>openDaySheet(date));
       els.monthCalendar.appendChild(cell);
     }
   }
   function renderDaySheet(date=new Date()){
-    const start=dayStart(date),list=entriesForDay(start),gaps=gapMinutes(list),best=longestGap(gaps);
+    const start=dayStart(date),list=entriesForDay(start),gaps=gapMinutes(list),best=longestGap(gaps),avg=averageFromGaps(gaps),count=list.length;
     els.daySheetTitle.textContent=formatDate(new Date(start));
-    els.todaySheetSummary.textContent=list.length
-      ?`${list.length} ${list.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(list[0].time))} · Beste Pause ${formatGap(best)}`
-      :"Keine Einträge an diesem Tag.";
+    els.todaySheetSummary.textContent=count?"Abstände werden nur zwischen Einträgen dieses Tages berechnet.":"Keine Trackingdaten an diesem Tag.";
+    els.dayDetailCount.textContent=count?String(count):"–";
+    els.dayDetailFirst.textContent=count?formatTime(new Date(list[0].time)):"–";
+    els.dayDetailAverage.textContent=formatGap(avg);
+    els.dayDetailBest.textContent=formatGap(best);
+    renderTimelineDots(els.dayDetailTimeline,list);
+    els.dayDetailStatus.classList.toggle("is-over-limit",count>settings.limit);
+    els.dayDetailStatus.classList.toggle("is-within-limit",count>0&&count<=settings.limit);
+    els.dayDetailStatus.classList.toggle("is-untracked",count===0);
+    els.dayDetailStatus.textContent=count===0
+      ?"Nicht als 0 gewertet"
+      :count>settings.limit
+        ?`${count-settings.limit} über Tageslimit ${settings.limit}`
+        :`Im Tageslimit · ${count} / ${settings.limit}`;
     els.todaySheetList.innerHTML="";
     [...list].reverse().forEach((entry,index)=>{
       const row=document.createElement("button");
