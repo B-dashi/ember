@@ -1,15 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdebd7"/><stop offset=".5" stop-color="#f7d4b8"/><stop offset="1" stop-color="#f2c5a2"/></linearGradient>
-    <linearGradient id="h1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7aa80"/><stop offset="1" stop-color="#c87955"/></linearGradient>
-    <linearGradient id="h2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#cc7b58"/><stop offset="1" stop-color="#9e553e"/></linearGradient>
-    <filter id="blur"><feGaussianBlur stdDeviation="22"/></filter>
-  </defs>
-  <rect width="900" height="620" fill="url(#sky)"/>
-  <circle cx="742" cy="184" r="66" fill="#ffe7a6" opacity=".65" filter="url(#blur)"/><circle cx="742" cy="184" r="41" fill="#ffeab2" opacity=".92"/>
-  <path d="M0 336 C120 286 218 252 320 292 C430 334 520 274 595 248 C695 214 790 263 900 326 L900 620 L0 620Z" fill="url(#h1)" opacity=".60"/>
-  <path d="M0 405 C125 344 236 356 340 398 C465 448 565 362 676 338 C760 320 829 344 900 370 L900 620 L0 620Z" fill="url(#h2)" opacity=".52"/>
-  <path d="M0 492 C185 438 312 453 465 504 C610 552 751 472 900 455 L900 620 L0 620Z" fill="#d99a72" opacity=".44"/>
-  <g fill="#6f4a37" opacity=".47"><ellipse cx="105" cy="465" rx="9" ry="61"/><ellipse cx="123" cy="482" rx="7" ry="48"/><ellipse cx="785" cy="445" rx="8" ry="64"/><ellipse cx="807" cy="460" rx="6" ry="45"/></g>
-  <path d="M0 0H900V620H0Z" fill="#fff" opacity=".06"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid slice">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#efb687"/><stop offset=".48" stop-color="#f6d6b7"/><stop offset="1" stop-color="#fbf5ef"/></linearGradient></defs>
+<rect width="900" height="700" fill="url(#sky)"/><circle cx="720" cy="190" r="54" fill="#fff3c7" opacity=".95"/>
+<path d="M0 282 C136 215 272 320 405 264 C560 199 672 330 900 250 L900 432 C724 380 600 439 446 396 C280 351 154 423 0 379Z" fill="#e7b08a" opacity=".82"/>
+<path d="M0 365 C165 292 298 414 458 342 C620 269 730 404 900 348 L900 550 C732 492 620 534 444 495 C278 458 144 520 0 474Z" fill="#c96a47" opacity=".34"/>
+<path d="M0 452 C170 406 320 493 504 448 C678 404 752 482 900 454 L900 700H0Z" fill="#fbf5ef" opacity=".82"/>
 </svg>

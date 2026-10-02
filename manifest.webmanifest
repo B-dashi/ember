@@ -5,8 +5,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7fb",
-  "theme_color": "#f4f7fb",
+  "background_color": "#f6f4ff",
+  "theme_color": "#f6f4ff",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "app-icon-iphone-180x180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
