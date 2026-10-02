@@ -679,3 +679,8 @@ textarea{
   border-color:rgba(211,177,91,.16);
   box-shadow:0 14px 36px rgba(0,0,0,.42);
 }
+
+:root[data-theme="dark"] .theme-dot.dark,
+.theme-dot.dark{
+  background:linear-gradient(135deg,#0b0c0f 0 60%,#b69243 60% 100%);
+}
