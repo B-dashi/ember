@@ -191,9 +191,9 @@
     els.summaryWeekButton.setAttribute("aria-pressed",String(isWeek));
     els.summaryMonthButton.setAttribute("aria-pressed",String(!isWeek));
     els.periodSummaryRange.textContent=isWeek?`${shortDayDate(start)} – ${shortDayDate(addDays(start,6))}`:new Intl.DateTimeFormat("de-AT",{month:"long",year:"numeric"}).format(start);
-    els.periodSummaryLabel.textContent=isWeek?"Einträge diese Woche":"Einträge diesen Monat";
-    els.periodSummaryTotal.textContent=String(stats.total);
+    els.periodSummaryLabel.textContent="Ø pro Tag";
     els.periodSummaryAverage.textContent=stats.average==null?"–":stats.average.toLocaleString("de-AT",{minimumFractionDigits:stats.average%1?1:0,maximumFractionDigits:1});
+    els.periodSummaryTotal.textContent=String(stats.total);
     els.periodSummaryWithinLimit.textContent=stats.trackedDays?`${stats.withinLimit}/${stats.trackedDays}`:"–";
     els.periodSummaryBestPause.textContent=formatGap(stats.bestPause);
   }
@@ -213,11 +213,12 @@
       button.dataset.level=String(level);
       if(isSameLocalDay(date,now))button.classList.add("is-today");
       if(manual)button.classList.add("is-manual");
+      if(known&&count>settings.limit)button.classList.add("is-over-limit");
       if(!known&&!future)button.classList.add("is-untracked");
       if(future){button.classList.add("is-future");button.disabled=true}
       button.innerHTML=known
-        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${manual?"Nachtrag":count===1?"Eintrag":"Einträge"}</small>`
-        :`<span>${weekday}</span><b>${date.getDate()}</b><strong>–</strong><small>${future?"":"Keine Daten"}</small>`;
+        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${count===1?"Eintrag":"Einträge"}</small>`
+        :`<span>${weekday}</span><b>${date.getDate()}</b><strong>–</strong><small></small>`;
       button.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:known?`${formatDate(date)}: ${count} Zigaretten${manual?", nachgetragen":""}`:`${formatDate(date)}: keine Daten`);
       if(!future)button.addEventListener("click",()=>openDaySheet(date));
       els.weekOverview.appendChild(button);
@@ -251,6 +252,7 @@
       cell.dataset.level=String(level);
       if(isSameLocalDay(date,now))cell.classList.add("is-today");
       if(manual)cell.classList.add("is-manual");
+      if(known&&count>settings.limit)cell.classList.add("is-over-limit");
       if(!known&&!future)cell.classList.add("is-untracked");
       if(future){cell.classList.add("is-future");cell.disabled=true}
       cell.innerHTML=`<b>${day}</b>${known?`<small>${count}</small>`:(!future?"<small>–</small>":"")}`;
@@ -555,73 +557,48 @@
       .some(sheet=>sheet&&sheet.getAttribute("aria-hidden")==="false");
   }
   function setupSwipeNavigation(){
-    let startX=0,startY=0,startTime=0,tracking=false,mode="";
-    const RIGHT_EDGE=42,IOS_LEFT_GUARD=54,MIN_DISTANCE=78,MAX_VERTICAL=62,MAX_TIME=650;
+    let startX=null,startY=null,startView=null,startTime=0,suppressNextClick=false;
+    const MIN_DISTANCE=72,MAX_VERTICAL=68,MAX_TIME=700,LEFT_EDGE=46,CENTER_MIN=.14,CENTER_MAX=.86;
     document.addEventListener("touchstart",event=>{
       if(event.touches.length!==1||sheetsOpen())return;
-      const touch=event.touches[0],view=currentView(),width=window.innerWidth;
-      mode="";
-      if(view===els.homeView&&touch.clientX>=width-RIGHT_EDGE)mode="open-settings";
-      else if(view===els.settingsView&&touch.clientX>IOS_LEFT_GUARD)mode="back-home";
-      if(!mode)return;
+      const touch=event.touches[0],view=currentView(),ratio=touch.clientX/window.innerWidth;
+      if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
+      if(view===els.homeView){
+        if(ratio<CENTER_MIN||ratio>CENTER_MAX)return;
+      }else if(touch.clientX>LEFT_EDGE){
+        return;
+      }
       startX=touch.clientX;
       startY=touch.clientY;
+      startView=view;
       startTime=Date.now();
-      tracking=true;
     },{passive:true});
-    document.addEventListener("touchmove",event=>{
-      if(!tracking||event.touches.length!==1)return;
-      const touch=event.touches[0],dx=touch.clientX-startX,dy=Math.abs(touch.clientY-startY);
-      if(dy>MAX_VERTICAL||Date.now()-startTime>MAX_TIME){tracking=false;return}
-      if(mode==="open-settings"&&dx<-MIN_DISTANCE){
-        tracking=false;
-        showView(els.settingsView);
-      }else if(mode==="back-home"&&dx>MIN_DISTANCE){
-        tracking=false;
-        showView(els.homeView);
+    document.addEventListener("touchend",event=>{
+      if(startX==null||startY==null||!startView)return;
+      const touch=event.changedTouches[0],dx=touch.clientX-startX,dy=Math.abs(touch.clientY-startY),elapsed=Date.now()-startTime;
+      const horizontal=Math.abs(dx)>=MIN_DISTANCE&&dy<=MAX_VERTICAL&&Math.abs(dx)>dy*1.25&&elapsed<=MAX_TIME;
+      if(horizontal){
+        if(startView===els.homeView&&dx<0){
+          suppressNextClick=true;
+          showView(els.settingsView);
+        }else if(startView===els.homeView&&dx>0){
+          suppressNextClick=true;
+          showView(els.analysisView);
+        }else if((startView===els.settingsView||startView===els.analysisView)&&dx>0){
+          suppressNextClick=true;
+          showView(els.homeView);
+        }
       }
+      startX=startY=startView=null;
+      startTime=0;
     },{passive:true});
-    document.addEventListener("touchend",()=>{tracking=false},{passive:true});
-    document.addEventListener("touchcancel",()=>{tracking=false},{passive:true});
-  }
-
-  function currentView(){
-    if(!els.settingsView.hidden)return els.settingsView;
-    if(!els.analysisView.hidden)return els.analysisView;
-    return els.homeView;
-  }
-  function gestureBlockedTarget(target){
-    return Boolean(target.closest("button,input,select,textarea,.modal-sheet,.toast,.today-sheet-list"));
-  }
-  let swipeStartX=null,swipeStartY=null,swipeStartView=null,swipeFromRightEdge=false;
-  function handleTouchStart(event){
-    if(event.touches.length!==1||!els.modalBackdrop.hidden)return;
-    const touch=event.touches[0],width=window.innerWidth;
-    swipeStartX=touch.clientX;
-    swipeStartY=touch.clientY;
-    swipeStartView=currentView();
-    swipeFromRightEdge=touch.clientX>=width-28;
-    if(gestureBlockedTarget(event.target)){
-      swipeStartX=null;
-      swipeStartY=null;
-      swipeStartView=null;
-    }
-  }
-  function handleTouchEnd(event){
-    if(swipeStartX==null||swipeStartY==null||!swipeStartView)return;
-    const touch=event.changedTouches[0],dx=touch.clientX-swipeStartX,dy=touch.clientY-swipeStartY;
-    const horizontal=Math.abs(dx)>=72&&Math.abs(dx)>Math.abs(dy)*1.35;
-    if(horizontal){
-      if(swipeStartView===els.homeView&&swipeFromRightEdge&&dx<0){
-        showView(els.settingsView);
-      }else if((swipeStartView===els.settingsView||swipeStartView===els.analysisView)&&dx>0&&swipeStartX>44){
-        showView(els.homeView);
-      }
-    }
-    swipeStartX=null;
-    swipeStartY=null;
-    swipeStartView=null;
-    swipeFromRightEdge=false;
+    document.addEventListener("touchcancel",()=>{startX=startY=startView=null;startTime=0},{passive:true});
+    document.addEventListener("click",event=>{
+      if(!suppressNextClick)return;
+      suppressNextClick=false;
+      event.preventDefault();
+      event.stopPropagation();
+    },true);
   }
 
   function playAddAnimation(){
