@@ -57,3 +57,21 @@ button,input{font:inherit}button{border:0;color:inherit}.app-shell{width:min(100
 .comparison-analysis-main{font-size:24px;font-weight:780;letter-spacing:-.035em;margin-top:13px}
 .comparison-analysis-sub{font-size:13.5px;color:var(--muted);font-weight:600;line-height:1.4;margin-top:3px}
 @media(max-width:390px){.pause-home-card{min-height:108px}.pause-card-copy>strong{font-size:23px}.comparison-analysis-main{font-size:23px}}
+
+/* Home Pause Card refinement */
+.pause-home-card{min-height:104px;padding-top:14px;padding-bottom:14px}
+.pause-card-copy>small{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:-.005em}
+.pause-card-copy>strong{font-size:22px;line-height:1.08;letter-spacing:-.025em;margin:2px 0;color:var(--ink);font-weight:730}
+.pause-card-hint{font-size:13px;color:var(--muted);font-weight:560;line-height:1.25}
+.pause-home-track{height:8px;margin-top:10px;background:rgba(111,113,144,.11)}
+.pause-home-card[data-state="waiting"] .pause-card-copy>strong{color:var(--ink)}
+.pause-home-card[data-state="waiting"] .pause-card-hint{color:#936b74}
+.pause-home-card[data-state="waiting"] .card-icon{background:rgba(188,126,139,.12);color:#9b6873}
+.pause-home-card[data-state="waiting"] .pause-home-track>span{background:linear-gradient(90deg,#d6a1aa,#b88cf7)}
+.pause-home-card[data-state="close"] .card-icon{background:var(--accent-soft);color:var(--accent)}
+.pause-home-card[data-state="close"] .pause-home-track>span{background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+.pause-home-card[data-state="reached"] .card-icon{background:rgba(76,145,101,.12);color:#4b8f66}
+.pause-home-card[data-state="reached"] .pause-card-copy>strong,
+.pause-home-card[data-state="reached"] .pause-card-hint{color:#397a56}
+.pause-home-card[data-state="reached"] .pause-home-track>span{background:linear-gradient(90deg,#79b98d,#4b9368)}
+@media(max-width:390px){.pause-home-card{min-height:100px}.pause-card-copy>strong{font-size:21px}}
