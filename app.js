@@ -169,14 +169,14 @@
     const end=new Date(endDate.getFullYear(),endDate.getMonth(),endDate.getDate());
     let total=0,trackedDays=0,withinLimit=0,bestPause=null;
     while(cursor<end&&dayStart(cursor)<=todayStart){
-      const list=entriesForDay(dayStart(cursor));
-      if(list.length){
+      const list=entriesForDay(dayStart(cursor)),known=hasDayCount(cursor),count=effectiveDayCount(cursor);
+      if(known){
         trackedDays++;
-        total+=list.length;
-        if(list.length<=settings.limit)withinLimit++;
-        const best=longestGap(gapMinutes(list));
-        if(best!=null&&(bestPause==null||best>bestPause))bestPause=best;
+        total+=count;
+        if(count<=settings.limit)withinLimit++;
       }
+      const best=longestGap(gapMinutes(list));
+      if(best!=null&&(bestPause==null||best>bestPause))bestPause=best;
       cursor=addDays(cursor,1);
     }
     return{total,trackedDays,withinLimit,bestPause,average:trackedDays?total/trackedDays:null};
@@ -203,21 +203,22 @@
     els.weekNext.disabled=analysisWeekOffset>=0;
     els.weekOverview.innerHTML="";
     const days=Array.from({length:7},(_,i)=>addDays(monday,i));
-    const counts=days.map(date=>entriesForDay(dayStart(date)).length),max=Math.max(...counts,1);
+    const counts=days.map(date=>hasDayCount(date)?effectiveDayCount(date):null),max=Math.max(...counts.filter(v=>v!=null),1);
     days.forEach((date,index)=>{
-      const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now),tracked=count>0;
+      const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now),known=count!=null,manual=manualCountForDay(date)!=null;
       const weekday=new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(date).replace(".","");
-      const level=tracked?Math.max(1,Math.ceil(count/max*4)):0;
+      const level=known?Math.max(1,Math.ceil(count/max*4)):0;
       button.type="button";
       button.className="week-day";
       button.dataset.level=String(level);
       if(isSameLocalDay(date,now))button.classList.add("is-today");
-      if(!tracked&&!future)button.classList.add("is-untracked");
+      if(manual)button.classList.add("is-manual");
+      if(!known&&!future)button.classList.add("is-untracked");
       if(future){button.classList.add("is-future");button.disabled=true}
-      button.innerHTML=tracked
-        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${count===1?"Eintrag":"Einträge"}</small>`
+      button.innerHTML=known
+        ?`<span>${weekday}</span><b>${date.getDate()}</b><strong>${count}</strong><small>${manual?"nachgetragen":count===1?"Eintrag":"Einträge"}</small>`
         :`<span>${weekday}</span><b>${date.getDate()}</b><strong>–</strong><small>${future?"":"Keine Daten"}</small>`;
-      button.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:tracked?`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`:`${formatDate(date)}: keine Trackingdaten`);
+      button.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:known?`${formatDate(date)}: ${count} Zigaretten${manual?", nachgetragen":""}`:`${formatDate(date)}: keine Daten`);
       if(!future)button.addEventListener("click",()=>openDaySheet(date));
       els.weekOverview.appendChild(button);
     });
@@ -225,15 +226,11 @@
   function renderMonthCalendar(){
     const now=new Date(),selected=new Date(now.getFullYear(),now.getMonth()+analysisMonthOffset,1),year=selected.getFullYear(),month=selected.getMonth();
     const first=new Date(year,month,1),daysInMonth=new Date(year,month+1,0).getDate();
-    const counts=new Map();
-    entries.forEach(entry=>{
-      const d=new Date(entry.time);
-      if(d.getFullYear()!==year||d.getMonth()!==month)return;
-      const key=localDateKey(d);
-      counts.set(key,(counts.get(key)||0)+1);
+    const monthCounts=Array.from({length:daysInMonth},(_,i)=>{
+      const date=new Date(year,month,i+1);
+      return hasDayCount(date)?effectiveDayCount(date):null;
     });
-    const monthCounts=Array.from({length:daysInMonth},(_,i)=>counts.get(localDateKey(new Date(year,month,i+1)))||0);
-    const max=Math.max(...monthCounts,0),total=monthCounts.reduce((sum,value)=>sum+value,0);
+    const knownCounts=monthCounts.filter(value=>value!=null),max=Math.max(...knownCounts,0),total=knownCounts.reduce((sum,value)=>sum+value,0);
     const title=new Intl.DateTimeFormat("de-AT",{month:"long",year:"numeric"}).format(first);
     els.monthCalendarTitle.textContent=title.charAt(0).toUpperCase()+title.slice(1);
     els.monthTotal.textContent=`${total} ${total===1?"Eintrag":"Einträge"}`;
@@ -248,36 +245,42 @@
     }
     for(let day=1;day<=daysInMonth;day++){
       const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("button");
-      const future=date>now&&!isSameLocalDay(date,now),tracked=count>0,level=tracked?Math.max(1,Math.ceil(count/Math.max(max,1)*4)):0;
+      const future=date>now&&!isSameLocalDay(date,now),known=count!=null,manual=manualCountForDay(date)!=null,level=known?Math.max(1,Math.ceil(count/Math.max(max,1)*4)):0;
       cell.type="button";
       cell.className="month-day";
       cell.dataset.level=String(level);
       if(isSameLocalDay(date,now))cell.classList.add("is-today");
-      if(!tracked&&!future)cell.classList.add("is-untracked");
+      if(manual)cell.classList.add("is-manual");
+      if(!known&&!future)cell.classList.add("is-untracked");
       if(future){cell.classList.add("is-future");cell.disabled=true}
-      cell.innerHTML=`<b>${day}</b>${tracked?`<small>${count}</small>`:(!future?"<small>–</small>":"")}`;
-      cell.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:tracked?`${formatDate(date)}: ${count} ${count===1?"Eintrag":"Einträge"}`:`${formatDate(date)}: keine Trackingdaten`);
+      cell.innerHTML=`<b>${day}</b>${known?`<small>${count}</small>`:(!future?"<small>–</small>":"")}`;
+      cell.setAttribute("aria-label",future?`${formatDate(date)}: zukünftiger Tag`:known?`${formatDate(date)}: ${count} Zigaretten${manual?", nachgetragen":""}`:`${formatDate(date)}: keine Daten`);
       if(!future)cell.addEventListener("click",()=>openDaySheet(date));
       els.monthCalendar.appendChild(cell);
     }
   }
   function renderDaySheet(date=new Date()){
-    const start=dayStart(date),list=entriesForDay(start),gaps=gapMinutes(list),best=longestGap(gaps),avg=averageFromGaps(gaps),count=list.length;
-    els.daySheetTitle.textContent=formatDate(new Date(start));
-    els.todaySheetSummary.textContent=count?"Abstände werden nur zwischen Einträgen dieses Tages berechnet.":"Keine Trackingdaten an diesem Tag.";
-    els.dayDetailCount.textContent=count?String(count):"–";
-    els.dayDetailFirst.textContent=count?formatTime(new Date(list[0].time)):"–";
+    const selected=new Date(date.getFullYear(),date.getMonth(),date.getDate()),start=dayStart(selected),list=entriesForDay(start),manual=manualCountForDay(selected),known=manual!=null||list.length>0,count=manual!=null?manual:list.length,gaps=gapMinutes(list),best=longestGap(gaps),avg=averageFromGaps(gaps),isPast=dayStart(selected)<dayStart();
+    activeDaySheetDate=selected;
+    els.daySheetTitle.textContent=formatDate(selected);
+    els.todaySheetSummary.textContent=manual!=null
+      ?(list.length?"Anzahl nachgetragen · Zeitwerte nur aus den gespeicherten Uhrzeiten.":"Anzahl nachgetragen · keine Uhrzeiten gespeichert.")
+      :(list.length?"Zeitwerte aus deinen gespeicherten Einträgen.":"Noch keine Daten für diesen Tag.");
+    els.dayDetailCount.textContent=known?String(count):"–";
+    els.dayDetailFirst.textContent=list.length?formatTime(new Date(list[0].time)):"–";
     els.dayDetailAverage.textContent=formatGap(avg);
     els.dayDetailBest.textContent=formatGap(best);
     renderTimelineDots(els.dayDetailTimeline,list);
-    els.dayDetailStatus.classList.toggle("is-over-limit",count>settings.limit);
-    els.dayDetailStatus.classList.toggle("is-within-limit",count>0&&count<=settings.limit);
-    els.dayDetailStatus.classList.toggle("is-untracked",count===0);
-    els.dayDetailStatus.textContent=count===0
-      ?"Nicht als 0 gewertet"
+    els.dayDetailStatus.classList.toggle("is-over-limit",known&&count>settings.limit);
+    els.dayDetailStatus.classList.toggle("is-within-limit",known&&count<=settings.limit);
+    els.dayDetailStatus.classList.toggle("is-untracked",!known);
+    els.dayDetailStatus.textContent=!known
+      ?"Keine Anzahl gespeichert"
       :count>settings.limit
         ?`${count-settings.limit} über Tageslimit ${settings.limit}`
         :`Im Tageslimit · ${count} / ${settings.limit}`;
+    els.dayBackfillButton.hidden=!isPast;
+    els.dayBackfillButton.textContent=manual!=null?"Nachgetragene Anzahl ändern":"Anzahl für diesen Tag nachtragen";
     els.todaySheetList.innerHTML="";
     [...list].reverse().forEach((entry,index)=>{
       const row=document.createElement("button");
