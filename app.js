@@ -88,7 +88,7 @@
   function renderTodaySheet(){
     const today=todaysEntries(),gaps=gapMinutes(today),best=longestGap(gaps);
     els.todaySheetSummary.textContent=today.length
-      ?`${today.length} ${today.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(today[0].time))} · Beste Pause ${formatGap(best))}`
+      ?`${today.length} ${today.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(today[0].time))} · Beste Pause ${formatGap(best)}`
       :"Noch keine Einträge heute.";
     els.todaySheetList.innerHTML="";
     [...today].reverse().forEach((entry,index)=>{
