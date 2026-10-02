@@ -22,6 +22,7 @@
 :root[data-theme="blue"]{--accent:#2e7de9;--accent-2:#63a7ff;--accent-soft:rgba(46,125,233,.13);--ink:#102845;--muted:#6e8199;--page:#f3f8fe;--ring-track:rgba(55,104,164,.22);--hero-ink:#102845;--hero-muted:rgba(16,40,69,.68);--shadow:0 12px 30px rgba(35,74,118,.09);--hero-image:url("theme-background-blue.webp")}
 :root[data-theme="terracotta"]{--accent:#ca6039;--accent-2:#e68b61;--accent-soft:rgba(202,96,57,.13);--ink:#33221d;--muted:#89776e;--page:#fbf5ef;--ring-track:rgba(129,101,86,.22);--hero-ink:#33221d;--hero-muted:rgba(51,34,29,.64);--shadow:0 12px 30px rgba(88,60,45,.09);--hero-image:url("theme-background-terracotta.webp")}
 :root[data-theme="green"]{--accent:#628354;--accent-2:#93b07d;--accent-soft:rgba(98,131,84,.14);--ink:#203827;--muted:#74806f;--page:#f4f7f1;--ring-track:rgba(81,107,75,.22);--hero-ink:#203827;--hero-muted:rgba(32,56,39,.64);--shadow:0 12px 30px rgba(52,76,48,.085);--hero-image:url("theme-background-green.webp")}
+:root[data-theme="dark"]{color-scheme:dark;--accent:#c79a35;--accent-2:#e4bd57;--accent-soft:rgba(199,154,53,.15);--ink:#f3ead5;--muted:#aaa08c;--page:#12110f;--card:rgba(30,27,22,.92);--card-border:rgba(228,189,87,.10);--ring-track:rgba(242,231,198,.18);--hero-ink:#f7eed8;--hero-muted:rgba(247,238,216,.70);--shadow:0 12px 30px rgba(0,0,0,.26);--hero-image:linear-gradient(160deg,#17140f 0%,#242016 52%,#17140f 100%);--hero-overlay:linear-gradient(180deg,rgba(0,0,0,.02),rgba(18,17,15,.10));--pause-track:rgba(247,238,216,.18);--pause-active:#e4bd57;--pause-close:#f2cf69;--pause-success:#78b48a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--page);min-height:100%}
 body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif;background:var(--page);color:var(--ink);overflow-x:hidden}
@@ -142,4 +143,165 @@ button,input{font:inherit}button{border:0;color:inherit}.app-shell{width:min(100
   .pause-dial,.pause-dial-ring{width:38px;height:38px}
   .ring-pause-copy strong{font-size:14px}
   .comparison-analysis-main{font-size:23px}
+}
+
+/* Ember v19: compact pause layout + dark theme */
+.progress-center{
+  display:block;
+  text-align:center;
+  padding-top:34px;
+}
+.cigarette-mark{
+  display:block;
+  margin:0 auto 1px;
+}
+.count-line{
+  justify-content:center;
+}
+.ring-pause{
+  position:absolute;
+  left:50%;
+  bottom:32px;
+  transform:translateX(-50%);
+  width:154px;
+  margin:0;
+  padding:8px 0 0;
+  grid-template-columns:36px 1fr;
+  gap:8px;
+}
+.pause-dial,
+.pause-dial-ring{
+  width:36px;
+  height:36px;
+}
+.pause-dial-clock{
+  width:16px;
+  height:16px;
+}
+.ring-pause-copy small{
+  font-size:9.5px;
+}
+.ring-pause-copy strong{
+  font-size:13.5px;
+}
+.ring-pause-copy>span{
+  max-width:102px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:9px;
+}
+.theme-dot.dark{
+  background:linear-gradient(135deg,#17140f 0 58%,#c79a35 58% 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app-shell{
+  background:var(--page);
+}
+:root[data-theme="dark"] .hero-home::after,
+:root[data-theme="dark"] .hero-subpage::after{
+  background:linear-gradient(180deg,rgba(18,17,15,0),var(--page));
+}
+:root[data-theme="dark"] .round-button{
+  background:rgba(255,255,255,.055);
+  border-color:rgba(228,189,87,.23);
+  box-shadow:0 8px 22px rgba(0,0,0,.20);
+}
+:root[data-theme="dark"] .home-header .round-button:first-child{
+  box-shadow:0 0 0 1px rgba(199,154,53,.32),0 0 22px rgba(199,154,53,.10);
+}
+:root[data-theme="dark"] .add-button{
+  color:#17130c;
+  border-color:rgba(245,215,137,.24);
+  background:linear-gradient(135deg,#e6c15d,#b98524);
+  box-shadow:0 10px 24px rgba(199,154,53,.18),inset 0 1px 0 rgba(255,255,255,.24);
+}
+:root[data-theme="dark"] .add-plus{
+  background:#f4e7c5;
+  color:#8f681d;
+}
+:root[data-theme="dark"] .add-divider{
+  background:rgba(23,19,12,.24);
+}
+:root[data-theme="dark"] .info-card,
+:root[data-theme="dark"] .entries-card,
+:root[data-theme="dark"] .settings-tile,
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .chart-card,
+:root[data-theme="dark"] .pause-analysis-card,
+:root[data-theme="dark"] .analysis-section-card,
+:root[data-theme="dark"] .patterns-card{
+  background:var(--card);
+  border-color:var(--card-border);
+}
+:root[data-theme="dark"] .card-icon,
+:root[data-theme="dark"] .tile-icon{
+  background:rgba(199,154,53,.13);
+  color:#d8ab42;
+}
+:root[data-theme="dark"] .entry-row{
+  border-top-color:rgba(235,217,174,.09);
+}
+:root[data-theme="dark"] .entry-dot{
+  box-shadow:0 0 0 6px rgba(199,154,53,.12);
+}
+:root[data-theme="dark"] .analysis-overview,
+:root[data-theme="dark"] .pattern-row,
+:root[data-theme="dark"] .distance-grid>div{
+  background:rgba(199,154,53,.08);
+}
+:root[data-theme="dark"] .timeline-plot{
+  background:linear-gradient(90deg,rgba(199,154,53,.035),rgba(199,154,53,.09));
+  border-color:rgba(228,189,87,.10);
+}
+:root[data-theme="dark"] .timeline-marker{
+  border-color:#1d1a14;
+}
+:root[data-theme="dark"] .modal-sheet{
+  background:rgba(22,20,16,.985);
+  box-shadow:0 -16px 42px rgba(0,0,0,.38);
+}
+:root[data-theme="dark"] .sheet-handle{
+  background:#5d5546;
+}
+:root[data-theme="dark"] .toggle-row,
+:root[data-theme="dark"] .time-row,
+:root[data-theme="dark"] .theme-list button,
+:root[data-theme="dark"] .sheet-row{
+  background:#211e18;
+  border:1px solid rgba(228,189,87,.08);
+}
+:root[data-theme="dark"] .toggle-row i{
+  background:#49443a;
+}
+:root[data-theme="dark"] .primary-sheet-button,
+:root[data-theme="dark"] .primary-action{
+  background:#c79a35;
+  color:#17130c;
+}
+:root[data-theme="dark"] .danger-action{
+  background:#2b1b1b;
+  color:#e98b8b;
+}
+:root[data-theme="dark"] .smart-suggestion{
+  background:rgba(199,154,53,.10);
+  border-color:rgba(228,189,87,.14);
+}
+:root[data-theme="dark"] .smart-suggestion>button{
+  background:#c79a35;
+  color:#17130c;
+}
+:root[data-theme="dark"] .bar-track{
+  background:rgba(199,154,53,.12);
+}
+:root[data-theme="dark"] .bar-fill{
+  background:linear-gradient(180deg,#e4bd57,#a97921);
+}
+@media(max-width:390px){
+  .progress-center{padding-top:32px}
+  .ring-pause{bottom:30px;width:148px;grid-template-columns:34px 1fr;gap:7px}
+  .pause-dial,.pause-dial-ring{width:34px;height:34px}
+  .ring-pause-copy strong{font-size:13px}
+  .ring-pause-copy>span{max-width:96px}
 }
