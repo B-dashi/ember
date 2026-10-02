@@ -26,7 +26,7 @@
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
   function relativeTime(date){const m=Math.max(0,Math.floor((Date.now()-date.getTime())/60000));if(m<1)return"gerade eben";if(m===1)return"vor 1 Min.";if(m<60)return`vor ${m} Min.`;const h=Math.floor(m/60);if(h===1)return"vor 1 Std.";if(h<24)return`vor ${h} Std.`;return"früher"}
   function loadEntries(){try{const raw=JSON.parse(localStorage.getItem(STORAGE_ENTRIES)||"[]");return Array.isArray(raw)?raw.filter(x=>x&&typeof x.id==="string"&&typeof x.time==="string"&&!Number.isNaN(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)):[]}catch{return[]}}
-  function loadSettings(){const fallback={limit:20,theme:"violet",pauseGoal:50,smartPauseSuggestions:false};try{const raw=JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}");const migrated=THEME_MIGRATION[raw.theme]||raw.theme;return{limit:Number.isFinite(Number(raw.limit))?clamp(Math.round(Number(raw.limit)),1,99):20,theme:THEMES[migrated]?migrated:"violet",pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,smartPauseSuggestions:Boolean(raw.smartPauseSuggestions)}}catch{return fallback}}
+  function loadSettings(){const fallback={limit:20,theme:"violet",pauseGoal:50,smartPauseSuggestions:true,smartPauseUserSet:false};try{const raw=JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}");const migrated=THEME_MIGRATION[raw.theme]||raw.theme;const userSet=Boolean(raw.smartPauseUserSet);return{limit:Number.isFinite(Number(raw.limit))?clamp(Math.round(Number(raw.limit)),1,99):20,theme:THEMES[migrated]?migrated:"violet",pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,smartPauseSuggestions:userSet?Boolean(raw.smartPauseSuggestions):true,smartPauseUserSet:userSet}}catch{return fallback}}
   const saveEntries=()=>localStorage.setItem(STORAGE_ENTRIES,JSON.stringify(entries));
   const saveSettings=()=>localStorage.setItem(STORAGE_SETTINGS,JSON.stringify(settings));
   function entriesForDay(start){const end=start+86400000;return entries.filter(item=>{const t=Date.parse(item.time);return t>=start&&t<end})}
@@ -127,14 +127,16 @@
 
     const live=pauseStatusData();
     if(live.state!=="empty"){
-      els.analysisCurrentPause.textContent=live.text;
-      els.analysisCurrentPauseText.textContent=live.hint;
+      els.analysisCurrentPause.textContent=live.elapsed<1?"< 1 Min.":`${live.elapsed} Min.`;
+      els.analysisCurrentPauseText.textContent=live.state==="reached"
+        ?(live.elapsed===goal?"Pause geschafft":`Pause geschafft · +${live.elapsed-goal} Min.`)
+        :`Noch ${live.remaining} Min. bis ${goal} Min.`;
       els.currentPauseFill.style.width=`${Math.max(3,Math.round(live.progress*100))}%`;
       els.currentPauseFill.dataset.state=live.state;
       els.analysisCurrentPause.dataset.state=live.state;
     }else{
       els.analysisCurrentPause.textContent="–";
-      els.analysisCurrentPauseText.textContent=`Pause ${goal} Min.`;
+      els.analysisCurrentPauseText.textContent=`${goal} Min. eingestellt`;
       els.currentPauseFill.style.width="0%";
       els.currentPauseFill.dataset.state="empty";
       els.analysisCurrentPause.dataset.state="empty";
@@ -148,14 +150,23 @@
       groups.get(key).count++;
     });
     els.timelinePlot.innerHTML="";
+    const showExactTimes=groups.size<=8;
+    let timelineIndex=0;
     groups.forEach(group=>{
-      const d=group.date,minutes=d.getHours()*60+d.getMinutes(),position=clamp(minutes/1440*100,1,99),marker=document.createElement("span");
-      marker.className=group.count>1?"timeline-marker multiple":"timeline-marker";
+      const d=group.date,minutes=d.getHours()*60+d.getMinutes(),position=clamp(minutes/1440*100,1,99),marker=document.createElement("span"),time=formatTime(d);
+      marker.className=`timeline-event ${timelineIndex%2?"lane-b":"lane-a"}${showExactTimes?"":" dense"}${group.count>1?" multiple":""}`;
       marker.style.left=`${position}%`;
-      marker.textContent=group.count>1?`${group.count}×`:"";
-      marker.setAttribute("aria-label",group.count>1?`${group.count} Einträge um ${formatTime(d)}`:`Eintrag um ${formatTime(d)}`);
-      marker.title=group.count>1?`${group.count}× · ${formatTime(d)}`:formatTime(d);
+      marker.setAttribute("aria-label",group.count>1?`${group.count} Einträge um ${time}`:`Eintrag um ${time}`);
+      marker.title=group.count>1?`${group.count}× · ${time}`:time;
+      const dot=document.createElement("span");
+      dot.className="timeline-event-dot";
+      dot.textContent=group.count>1?`${group.count}×`:"";
+      const label=document.createElement("span");
+      label.className="timeline-event-time";
+      label.textContent=time;
+      marker.append(dot,label);
       els.timelinePlot.appendChild(marker);
+      timelineIndex++;
     });
     els.timelineEmpty.hidden=today.length>0;
 
@@ -176,21 +187,22 @@
     });
   }
   function showView(view){[els.homeView,els.settingsView,els.analysisView].forEach(v=>{v.hidden=v!==view;v.classList.toggle("is-active",v===view)});window.scrollTo({top:0,behavior:"instant"})}
-  function addEntry(){const id=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,entry={id,time:new Date().toISOString()};entries.push(entry);entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();lastAddedId=id;render();showToast(`Zigarette um ${formatTime(new Date(entry.time))} gespeichert`,true)}
+  function addEntry(){const id=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,entry={id,time:new Date().toISOString()};entries.push(entry);entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();lastAddedId=id;render();showToast(`${formatTime(new Date(entry.time))} gespeichert`,true)}
   function undoLastAdd(){if(!lastAddedId)return;entries=entries.filter(x=>x.id!==lastAddedId);saveEntries();lastAddedId=null;render();showToast("Eintrag entfernt",false)}
-  function showToast(text,undo){clearTimeout(toastTimer);els.toastText.textContent=text;els.undoButton.hidden=!undo;els.toast.classList.add("is-visible");els.toast.setAttribute("aria-hidden","false");toastTimer=setTimeout(()=>{els.toast.classList.remove("is-visible");els.toast.setAttribute("aria-hidden","true")},4200)}
-  function openSheet(sheet){closeSheets(false);els.modalBackdrop.hidden=false;requestAnimationFrame(()=>{els.modalBackdrop.classList.add("is-visible");sheet.classList.add("is-open")});sheet.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
+  function hideToast(){clearTimeout(toastTimer);els.toast.classList.remove("is-visible");els.toast.setAttribute("aria-hidden","true")}
+  function showToast(text,undo){hideToast();els.toastText.textContent=text;els.undoButton.hidden=!undo;els.toast.classList.add("is-visible");els.toast.setAttribute("aria-hidden","false");toastTimer=setTimeout(hideToast,3600)}
+  function openSheet(sheet){hideToast();closeSheets(false);els.modalBackdrop.hidden=false;requestAnimationFrame(()=>{els.modalBackdrop.classList.add("is-visible");sheet.classList.add("is-open")});sheet.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
   function closeSheets(hide=true){[els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.editSheet].forEach(s=>{s.classList.remove("is-open");s.setAttribute("aria-hidden","true")});if(hide){els.modalBackdrop.classList.remove("is-visible");setTimeout(()=>{els.modalBackdrop.hidden=true;document.body.style.overflow=""},210)}}
   function openEdit(id){const entry=entries.find(x=>x.id===id);if(!entry)return;editingId=id;const d=new Date(entry.time);els.editTime.value=`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;openSheet(els.editSheet)}
-  function saveEdit(){const entry=entries.find(x=>x.id===editingId);if(!entry||!els.editTime.value)return;const [h,m]=els.editTime.value.split(":").map(Number),d=new Date(entry.time);d.setHours(h,m,0,0);entry.time=d.toISOString();entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();closeSheets();render();showToast("Eintrag aktualisiert",false)}
-  function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();showToast("Eintrag gelöscht",false)}
+  function saveEdit(){const entry=entries.find(x=>x.id===editingId);if(!entry||!els.editTime.value)return;const [h,m]=els.editTime.value.split(":").map(Number),d=new Date(entry.time);d.setHours(h,m,0,0);entry.time=d.toISOString();entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();closeSheets();render();setTimeout(()=>showToast("Eintrag aktualisiert",false),240)}
+  function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();setTimeout(()=>showToast("Eintrag gelöscht",false),240)}
   function setTheme(theme){if(!THEMES[theme])return;settings.theme=theme;saveSettings();applyTheme();render()}
   function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);saveSettings();render()});els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);saveSettings();render()});els.closeLimitSheet.addEventListener("click",()=>closeSheets());
-  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render();showToast(`Pause auf ${suggestion} Min. gesetzt`,false)});els.closePauseSheet.addEventListener("click",()=>closeSheets());
+  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render()});els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
-  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();showToast("Alle Einträge gelöscht",false)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());
+  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();els.analysisComparisonText.textContent=comparisonCopy(t.length);renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
