@@ -2530,3 +2530,38 @@ html{
     grid-template-columns:.9fr 1.2fr;
   }
 }
+
+/* Ember v32: clearer manual-day label + swipe-friendly polish */
+.week-day.is-manual>small{
+  display:block;
+  width:100%;
+  max-width:100%;
+  padding:0 2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:7.1px;
+  line-height:1.05;
+  text-align:center;
+  letter-spacing:-.015em;
+}
+.month-day.is-manual::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:4px;
+  width:4px;
+  height:4px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:var(--accent);
+  opacity:.72;
+}
+:root[data-theme="dark"] .month-day.is-manual::after{
+  background:var(--accent-2);
+}
+
+/* Keep page content naturally touch-scrollable; horizontal gesture navigation is handled in JS. */
+.view{
+  touch-action:pan-y;
+}
