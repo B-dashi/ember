@@ -3044,3 +3044,105 @@ body{
     height:38px;
   }
 }
+
+/* Ember v37: polished headers + reliable touch pager */
+
+/* Reserve horizontal gestures for Ember even when the swipe starts on a card/button. */
+.pager-track,
+.pager-track>.view,
+.pager-track button{
+  touch-action:pan-y;
+}
+.pager-track input,
+.pager-track select,
+.pager-track textarea{
+  touch-action:manipulation;
+}
+
+/* A calmer, more native-feeling settle animation after releasing the finger. */
+.pager-track.is-animating{
+  transition:transform 320ms cubic-bezier(.22,1,.36,1);
+}
+
+/* Move the navigation/header content away from the iPhone status area. */
+.home-header{
+  transform:translateY(10px);
+}
+.pager-subpage-header{
+  transform:translateY(15px);
+  grid-template-columns:46px 1fr 46px;
+}
+
+/* Analysis / Settings get a small supporting line instead of a floating title alone. */
+.subpage-title-block{
+  min-width:0;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+.subpage-title-block h1{
+  margin:0;
+  font-size:29px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.04em;
+  color:var(--hero-ink);
+  text-shadow:0 2px 12px rgba(25,18,55,.18);
+}
+.subpage-title-block p{
+  margin:0;
+  color:var(--hero-muted);
+  font-size:11.5px;
+  line-height:1.1;
+  font-weight:600;
+  letter-spacing:.01em;
+}
+
+/* Keep the directional affordances visible without competing with the title. */
+.pager-home-button{
+  width:38px;
+  min-width:38px;
+  height:38px;
+  border-color:rgba(255,255,255,.20);
+  background:rgba(255,255,255,.075);
+  box-shadow:0 4px 12px rgba(20,18,45,.055);
+}
+.pager-home-button svg{
+  width:17px;
+  height:17px;
+  stroke-width:1.8;
+}
+
+/* Preserve a little more air below the moved subpage header. */
+.hero-subpage{
+  padding-top:calc(env(safe-area-inset-top) + 20px);
+}
+
+/* Prevent accidental text selection while physically dragging pages. */
+.pager-track.is-dragging,
+.pager-track.is-dragging *{
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+:root[data-theme="dark"] .pager-home-button{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(211,177,91,.11);
+}
+
+@media(max-width:390px){
+  .home-header{transform:translateY(8px)}
+  .pager-subpage-header{
+    transform:translateY(13px);
+    grid-template-columns:42px 1fr 42px;
+  }
+  .subpage-title-block h1{font-size:27px}
+  .subpage-title-block p{font-size:11px}
+  .pager-home-button{
+    width:36px;
+    min-width:36px;
+    height:36px;
+  }
+}
