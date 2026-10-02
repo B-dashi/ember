@@ -449,7 +449,7 @@
     const suggestion=smartLimitSuggestion();
     els.smartLimitSuggestion.hidden=!suggestion;
     if(!suggestion)return;
-    els.smartLimitText.textContent="5 Trackingtage in Folge im Limit.";
+    els.smartLimitText.textContent="5 Tage in Folge im Limit.";
     els.smartLimitHint.textContent=`Tageslimit auf ${suggestion} reduzieren?`;
   }
   function dayPart(hour){if(hour<5)return"Nacht";if(hour<9)return"Morgen";if(hour<12)return"Vormittag";if(hour<17)return"Nachmittag";if(hour<22)return"Abend";return"Nacht"}
