@@ -323,7 +323,10 @@
     <div class="backfill-count-label">Zigaretten</div>
     <div class="limit-stepper backfill-stepper">
       <button id="backfillMinus" type="button" aria-label="Anzahl reduzieren">−</button>
-      <input id="backfillCount" class="backfill-count-input" type="number" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Anzahl Zigaretten">
+      <div class="backfill-count-center">
+        <input id="backfillCount" class="backfill-count-input" type="number" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Anzahl Zigaretten">
+        <span id="backfillLimitHint" class="backfill-limit-hint" hidden></span>
+      </div>
       <button id="backfillPlus" type="button" aria-label="Anzahl erhöhen">+</button>
     </div>
     <button class="sheet-row danger backfill-delete" id="deleteBackfillButton" type="button" hidden>Nachtrag löschen <span>›</span></button>
