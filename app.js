@@ -21,7 +21,7 @@
     pageDots:$("pageDots"),analysisDot:$("analysisDot"),homeDot:$("homeDot"),settingsDot:$("settingsDot"),toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, activePageIndex=1, pagerAnimating=false, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
+  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, activePageIndex=1, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
@@ -549,8 +549,7 @@
   const PAGE_ORDER=()=>[els.analysisView,els.homeView,els.settingsView];
   function pageIndex(view){return PAGE_ORDER().indexOf(view)}
   function currentView(){return PAGE_ORDER()[activePageIndex]||els.homeView}
-  function pagerWidth(){return els.homeView.getBoundingClientRect().width||window.innerWidth}
-  function pagerX(index=activePageIndex){return -index*pagerWidth()}
+  function pagerWidth(){return els.pagerTrack.clientWidth||window.innerWidth}
   function updatePageDots(view=currentView()){
     const dots=[[els.analysisView,els.analysisDot],[els.homeView,els.homeDot],[els.settingsView,els.settingsDot]];
     dots.forEach(([page,dot])=>{
@@ -564,110 +563,42 @@
       const active=index===activePageIndex;
       view.classList.toggle("is-active",active);
       view.setAttribute("aria-hidden",String(!active));
-      if("inert" in view)view.inert=!active;
     });
-  }
-  function setPagerPosition(x,animate=false){
-    els.pagerTrack.classList.toggle("is-animating",animate);
-    els.pagerTrack.style.transform=`translate3d(${x}px,0,0)`;
-  }
-  function finishPagerAnimation(){
-    els.pagerTrack.classList.remove("is-animating");
-    pagerAnimating=false;
   }
   function showView(view,options={}){
     const index=pageIndex(view);
     if(index<0)return;
-    const instant=Boolean(options.instant)||window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     activePageIndex=index;
     updatePageDots(view);
     updatePageA11y();
-    pagerAnimating=!instant;
-    setPagerPosition(pagerX(index),!instant);
-    if(instant)finishPagerAnimation();
-    else setTimeout(finishPagerAnimation,340);
-  }
-  function sheetsOpen(){
-    return [els.pauseConfirmSheet,els.backfillSheet,els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet]
-      .some(sheet=>sheet&&sheet.getAttribute("aria-hidden")==="false");
+    const instant=Boolean(options.instant)||window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    els.pagerTrack.scrollTo({left:index*pagerWidth(),top:0,behavior:instant?"auto":"smooth"});
   }
   function setupSwipeNavigation(){
-    let startX=null,startY=null,startTime=0,startIndex=1,dragging=false,baseX=0,suppressClick=false;
-    const MIN_DISTANCE=54,MIN_VELOCITY=.28,DIRECTION_LOCK=10;
-    const reset=()=>{
-      startX=startY=startTime=null;
-      dragging=false;
-      els.pagerTrack.classList.remove("is-dragging");
+    let settleTimer=null;
+    const syncFromScroll=()=>{
+      const width=pagerWidth();
+      if(!width)return;
+      const index=clamp(Math.round(els.pagerTrack.scrollLeft/width),0,2);
+      if(index!==activePageIndex){
+        activePageIndex=index;
+        updatePageDots();
+        updatePageA11y();
+      }
+      clearTimeout(settleTimer);
+      settleTimer=setTimeout(()=>{
+        const settled=clamp(Math.round(els.pagerTrack.scrollLeft/pagerWidth()),0,2);
+        activePageIndex=settled;
+        updatePageDots();
+        updatePageA11y();
+      },120);
     };
-    document.addEventListener("touchstart",event=>{
-      if(event.touches.length!==1||sheetsOpen()||pagerAnimating)return;
-      if(event.target.closest("input,select,textarea,.modal-sheet,.toast"))return;
-      const touch=event.touches[0];
-      startX=touch.clientX;
-      startY=touch.clientY;
-      startTime=Date.now();
-      startIndex=activePageIndex;
-      baseX=pagerX(startIndex);
-      dragging=false;
-      els.pagerTrack.classList.remove("is-animating");
-    },{passive:true});
-
-    document.addEventListener("touchmove",event=>{
-      if(startX==null||event.touches.length!==1)return;
-      const touch=event.touches[0],dx=touch.clientX-startX,dy=touch.clientY-startY;
-      if(!dragging){
-        if(Math.abs(dx)<DIRECTION_LOCK&&Math.abs(dy)<DIRECTION_LOCK)return;
-        if(Math.abs(dy)>=Math.abs(dx)){reset();return}
-        dragging=true;
-        els.pagerTrack.classList.add("is-dragging");
-      }
-      if(event.cancelable)event.preventDefault();
-      const atLeft=startIndex===0&&dx>0,atRight=startIndex===2&&dx<0;
-      const adjusted=(atLeft||atRight)?dx*.28:dx;
-      setPagerPosition(baseX+adjusted,false);
-    },{passive:false});
-
-    document.addEventListener("touchend",event=>{
-      if(startX==null)return;
-      const touch=event.changedTouches[0],dx=touch.clientX-startX,dy=touch.clientY-startY,elapsed=Math.max(1,Date.now()-startTime);
-      const velocity=Math.abs(dx)/elapsed,horizontal=Math.abs(dx)>Math.abs(dy);
-      let next=startIndex;
-      if(horizontal&&(Math.abs(dx)>=MIN_DISTANCE||velocity>=MIN_VELOCITY)){
-        if(dx<0)next=Math.min(2,startIndex+1);
-        if(dx>0)next=Math.max(0,startIndex-1);
-      }
-      suppressClick=dragging&&Math.abs(dx)>18;
-      reset();
-      activePageIndex=next;
-      updatePageDots();
-      updatePageA11y();
-      pagerAnimating=true;
-      setPagerPosition(pagerX(next),true);
-      setTimeout(finishPagerAnimation,340);
-      startX=startY=startTime=null;
-    },{passive:true});
-
-    document.addEventListener("touchcancel",()=>{
-      if(startX!=null){
-        pagerAnimating=true;
-        setPagerPosition(pagerX(startIndex),true);
-        setTimeout(finishPagerAnimation,340);
-      }
-      reset();
-    },{passive:true});
-
-    document.addEventListener("click",event=>{
-      if(!suppressClick)return;
-      suppressClick=false;
-      event.preventDefault();
-      event.stopPropagation();
-    },true);
-
-    let resizeTimer=null;
+    els.pagerTrack.addEventListener("scroll",syncFromScroll,{passive:true});
     window.addEventListener("resize",()=>{
-      clearTimeout(resizeTimer);
-      resizeTimer=setTimeout(()=>setPagerPosition(pagerX(),false),80);
+      clearTimeout(settleTimer);
+      settleTimer=setTimeout(()=>els.pagerTrack.scrollTo({left:activePageIndex*pagerWidth(),behavior:"auto"}),80);
     });
+    requestAnimationFrame(()=>els.pagerTrack.scrollTo({left:activePageIndex*pagerWidth(),behavior:"auto"}));
   }
 
   function playAddAnimation(){
