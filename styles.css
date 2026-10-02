@@ -1329,3 +1329,21 @@ html{
     font-size:16px;
   }
 }
+
+/* Ember v25: no duplicate summary line under the mini timeline */
+.day-summary-footer{
+  display:none!important;
+}
+.day-mini-axis{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  margin-top:5px;
+  padding:0 1px;
+  color:color-mix(in srgb,var(--muted) 82%,transparent);
+  font-size:9px;
+  font-weight:560;
+  line-height:1;
+}
+.day-mini-axis span{text-align:center}
+.day-mini-axis span:first-child{text-align:left}
+.day-mini-axis span:last-child{text-align:right}
