@@ -8,7 +8,7 @@
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),
-    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),emptyState:$("emptyState"),
+    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),entriesCard:$("entriesCard"),emptyState:$("emptyState"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),editSheet:$("editSheet"),
@@ -16,7 +16,7 @@
     pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     exportDataButton:$("exportDataButton"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
-    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisOverview:$("analysisOverview"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),patternList:$("patternList"),timelinePlot:$("timelinePlot"),timelineEmpty:$("timelineEmpty"),weekChart:$("weekChart"),
+    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),patternList:$("patternList"),timelinePlot:$("timelinePlot"),timelineEmpty:$("timelineEmpty"),weekChart:$("weekChart"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null;
@@ -51,15 +51,17 @@
   function renderPauseStatus(){
     const status=pauseStatusData(),goal=settings.pauseGoal;
     if(status.state==="empty"){
-      els.homePauseValue.textContent=`${goal} Min.`;
-      els.homePauseHint.textContent="Eingestellt";
+      els.homePauseValue.textContent="0 Min.";
+      els.homePauseHint.textContent=`${goal} Min. eingestellt`;
     }else if(status.state==="reached"){
       const extra=Math.max(0,status.elapsed-goal);
       els.homePauseValue.textContent=extra>0?`+${extra} Min.`:"Geschafft";
-      els.homePauseHint.textContent=extra>0?`${status.elapsed} Min. Pause`:"Pause geschafft";
+      els.homePauseHint.textContent=`${goal} Min. geschafft`;
     }else{
-      els.homePauseValue.textContent=`Noch ${status.remaining} Min.`;
-      els.homePauseHint.textContent=status.state==="close"?"Fast geschafft":`${status.elapsed<1?0:status.elapsed} von ${goal} Min.`;
+      els.homePauseValue.textContent=`${status.elapsed<1?0:status.elapsed} Min.`;
+      els.homePauseHint.textContent=status.state==="close"
+        ?`noch ${status.remaining} Min. · fast geschafft`
+        :`noch ${status.remaining} Min.`;
     }
     els.pauseCardHome.dataset.state=status.state;
     els.pauseDialValue.dataset.state=status.state;
@@ -112,7 +114,7 @@
   function yesterdayCountAtCurrentTime(){const now=new Date(),todayStart=dayStart(now),elapsed=now.getTime()-todayStart,yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);const start=dayStart(yesterday),cutoff=start+elapsed;return entries.filter(item=>{const t=Date.parse(item.time);return t>=start&&t<=cutoff}).length}
   function comparisonCopy(todayCount){const yesterdayCount=yesterdayCountAtCurrentTime(),diff=todayCount-yesterdayCount;if(diff===0)return"Gleich wie gestern um diese Uhrzeit";const amount=Math.abs(diff);return`${amount} ${diff<0?"weniger":"mehr"} als gestern um diese Uhrzeit`}
   function applyTheme(){document.documentElement.dataset.theme=settings.theme;document.querySelector('meta[name="theme-color"]')?.setAttribute("content",THEMES[settings.theme].themeColor);els.designTileValue.textContent=THEMES[settings.theme].name;els.themeList.querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.theme===settings.theme)))}
-  function render(){const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1);els.dateLabel.textContent=formatDate();els.todayCount.textContent=count;els.limitCount.textContent=limit;els.remainingText.textContent=`Tageslimit ${limit}`;renderPauseStatus();els.progressCircle.style.strokeDashoffset=String(100-progress*100);els.limitTileValue.textContent=`${limit} Zigaretten`;els.settingsLimitValue.textContent=limit;els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;els.settingsPauseValue.textContent=settings.pauseGoal;renderSmartPauseSuggestion();els.analysisComparisonCount.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"}`;els.analysisComparisonText.textContent=comparisonCopy(count);els.entryCountLabel.textContent=count===1?"1 Eintrag":`${count} Einträge`;if(newest){const d=new Date(newest.time);els.lastTime.textContent=formatTime(d);els.lastRelative.textContent=relativeTime(d);els.lastCard.disabled=false}else{els.lastTime.textContent="–";els.lastRelative.textContent="Noch kein Eintrag";els.lastCard.disabled=true}els.entryList.innerHTML="";[...today].reverse().forEach((entry,index)=>{const b=document.createElement("button");b.type="button";b.className="entry-row";const n=count-index,t=formatTime(new Date(entry.time));b.innerHTML=`<span class="entry-dot"></span><span class="entry-time">${t}</span><span class="entry-number">${n}.</span><span class="entry-chevron">›</span>`;b.addEventListener("click",()=>openEdit(entry.id));els.entryList.appendChild(b)});els.emptyState.hidden=count>0;renderAnalysis()}
+  function render(){const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1);els.dateLabel.textContent=formatDate();els.todayCount.textContent=count;els.limitCount.textContent=limit;els.remainingText.textContent=`Tageslimit ${limit}`;renderPauseStatus();els.progressCircle.style.strokeDashoffset=String(100-progress*100);els.limitTileValue.textContent=`${limit} Zigaretten`;els.settingsLimitValue.textContent=limit;els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;els.settingsPauseValue.textContent=settings.pauseGoal;renderSmartPauseSuggestion();els.analysisComparisonCount.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"}`;els.analysisComparisonText.textContent=comparisonCopy(count);els.entryCountLabel.textContent=count===1?"1 Eintrag":`${count} Einträge`;els.entriesCard.classList.toggle("is-compact",count<=2);els.entriesCard.classList.toggle("is-empty",count===0);if(newest){const d=new Date(newest.time);els.lastTime.textContent=formatTime(d);els.lastRelative.textContent=relativeTime(d);els.lastCard.disabled=false}else{els.lastTime.textContent="–";els.lastRelative.textContent="Noch kein Eintrag";els.lastCard.disabled=true}els.entryList.innerHTML="";[...today].reverse().forEach((entry,index)=>{const b=document.createElement("button");b.type="button";b.className="entry-row";const n=count-index,t=formatTime(new Date(entry.time));b.innerHTML=`<span class="entry-dot"></span><span class="entry-time">${t}</span><span class="entry-number">${n}.</span><span class="entry-chevron">›</span>`;b.addEventListener("click",()=>openEdit(entry.id));els.entryList.appendChild(b)});els.emptyState.hidden=count>0;renderAnalysis()}
   function renderAnalysis(){
     const today=todaysEntries(),count=today.length,todayGaps=gapMinutes(today),avgToday=averageFromGaps(todayGaps),longestToday=longestGap(todayGaps),goal=settings.pauseGoal,hit=todayGaps.filter(value=>value>=goal).length,total=todayGaps.length;
     els.analysisToday.textContent=count;
@@ -121,9 +123,8 @@
     els.analysisLongestToday.textContent=formatGap(longestToday);
     els.analysisPauseGoal.textContent=`${goal} Min. eingestellt`;
     els.analysisPauseHit.textContent=total?`${hit} / ${total}`:"–";
-    els.analysisPauseCaption.textContent=total?`${hit} von ${total} Pausen erreicht`:"Noch keine abgeschlossene Pause heute";
+    els.analysisPauseCaption.textContent=total?`${total} abgeschlossene ${total===1?"Pause":"Pausen"} · Ziel ${goal} Min.`:"Noch keine abgeschlossene Pause";
     els.analysisPauseAverage.textContent=formatGap(avgToday);
-    els.analysisOverview.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"} · Ø ${formatGap(avgToday)} · Pause ${total?`${hit}/${total}`:"–"}`;
 
     const live=pauseStatusData();
     if(live.state!=="empty"){
