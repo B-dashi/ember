@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id);
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
-    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),homePauseFill:$("homePauseFill"),progressCircle:$("progressCircle"),
+    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseGoal:$("homePauseGoal"),homePauseHint:$("homePauseHint"),homePauseFill:$("homePauseFill"),progressCircle:$("progressCircle"),
     addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),emptyState:$("emptyState"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
@@ -39,24 +39,28 @@
   function latestEntry(){return entries.length?entries[entries.length-1]:null}
   function pauseStatusData(){
     const latest=latestEntry(),goal=settings.pauseGoal;
-    if(!latest)return{state:"empty",elapsed:null,remaining:null,progress:0,text:"–",hint:`Pause-Ziel ${goal} Min.`};
+    if(!latest)return{state:"empty",elapsed:null,remaining:null,progress:0,text:"–",hint:`Pause ${goal} Min.`};
     const elapsed=Math.max(0,Math.floor((Date.now()-Date.parse(latest.time))/60000)),remaining=Math.max(0,goal-elapsed),progress=clamp(elapsed/goal,0,1);
     if(elapsed<goal){
       const close=remaining<=5;
       return{state:close?"close":"waiting",elapsed,remaining,progress,text:`${elapsed<1?"< 1":elapsed} / ${goal} Min.`,hint:close?`Noch ${remaining} Min. · Fast geschafft`:`Noch ${remaining} Min.`};
     }
     const extra=elapsed-goal;
-    return{state:"reached",elapsed,remaining:0,progress:1,text:`${elapsed} Min.`,hint:extra>0?`Ziel erreicht · +${extra} Min.`:"Pause-Ziel erreicht ✓"};
+    return{state:"reached",elapsed,remaining:0,progress:1,text:`${elapsed} Min.`,hint:extra>0?`Pause geschafft · +${extra} Min.`:"Pause geschafft ✓"};
   }
   function renderPauseStatus(){
     const status=pauseStatusData(),goal=settings.pauseGoal;
+    els.homePauseGoal.textContent=`${goal} Min.`;
     if(status.state==="empty"){
-      els.homePauseValue.textContent="–";
-      els.homePauseHint.textContent=`Pause-Ziel ${goal} Min.`;
+      els.homePauseValue.textContent=`${goal} Min.`;
+      els.homePauseHint.textContent="Startet mit dem ersten Eintrag";
+    }else if(status.state==="reached"){
+      const extra=Math.max(0,status.elapsed-goal);
+      els.homePauseValue.textContent=extra>0?`+${extra} Min.`:"Geschafft";
+      els.homePauseHint.textContent="Pause geschafft";
     }else{
-      const shownElapsed=status.elapsed<1?0:status.elapsed;
-      els.homePauseValue.textContent=`${shownElapsed} / ${goal} Min.`;
-      els.homePauseHint.textContent=status.elapsed<1?"Gerade gestartet":status.hint;
+      els.homePauseValue.textContent=`Noch ${status.remaining} Min.`;
+      els.homePauseHint.textContent=status.state==="close"?"Fast geschafft":`${status.elapsed<1?0:status.elapsed} von ${goal} Min.`;
     }
     els.pauseCardHome.dataset.state=status.state;
     els.homePauseFill.dataset.state=status.state;
@@ -116,11 +120,11 @@
     els.analysisRemaining.textContent=Math.max(settings.limit-count,0);
     els.analysisGapToday.textContent=formatGap(avgToday);
     els.analysisLongestToday.textContent=formatGap(longestToday);
-    els.analysisPauseGoal.textContent=`${goal} Min. Ziel`;
+    els.analysisPauseGoal.textContent=`${goal} Min. eingestellt`;
     els.analysisPauseHit.textContent=total?`${hit} / ${total}`:"–";
     els.analysisPauseCaption.textContent=total?`${hit} von ${total} Pausen erreicht`:"Noch keine abgeschlossene Pause heute";
     els.analysisPauseAverage.textContent=formatGap(avgToday);
-    els.analysisOverview.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"} · Ø ${formatGap(avgToday)} · Pause-Ziel ${total?`${hit}/${total}`:"–"}`;
+    els.analysisOverview.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"} · Ø ${formatGap(avgToday)} · Pause ${total?`${hit}/${total}`:"–"}`;
 
     const live=pauseStatusData();
     if(live.state!=="empty"){
@@ -131,7 +135,7 @@
       els.analysisCurrentPause.dataset.state=live.state;
     }else{
       els.analysisCurrentPause.textContent="–";
-      els.analysisCurrentPauseText.textContent=`Pause-Ziel ${goal} Min.`;
+      els.analysisCurrentPauseText.textContent=`Pause ${goal} Min.`;
       els.currentPauseFill.style.width="0%";
       els.currentPauseFill.dataset.state="empty";
       els.analysisCurrentPause.dataset.state="empty";
@@ -185,7 +189,7 @@
   function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);saveSettings();render()});els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);saveSettings();render()});els.closeLimitSheet.addEventListener("click",()=>closeSheets());
-  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render();showToast(`Pause-Ziel auf ${suggestion} Min. gesetzt`,false)});els.closePauseSheet.addEventListener("click",()=>closeSheets());
+  els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render();showToast(`Pause auf ${suggestion} Min. gesetzt`,false)});els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
   els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();showToast("Alle Einträge gelöscht",false)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
