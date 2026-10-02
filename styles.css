@@ -10,12 +10,12 @@
   --card-border:rgba(255,255,255,.72);
   --ring-track:rgba(93,80,165,.16);
   --shadow:0 18px 42px rgba(76,62,133,.13);
-  --hero-image:url("theme-background-violet.svg");
+  --hero-image:url("theme-background-violet.webp");
   --hero-overlay:linear-gradient(180deg,rgba(48,46,135,.04),rgba(245,243,255,.05));
 }
-:root[data-theme="blue"]{--accent:#2e7de9;--accent-2:#63a7ff;--accent-soft:rgba(46,125,233,.13);--ink:#102845;--muted:#6e8199;--page:#f3f8fe;--ring-track:rgba(55,104,164,.16);--shadow:0 18px 42px rgba(35,74,118,.12);--hero-image:url("theme-background-blue.svg")}
-:root[data-theme="terracotta"]{--accent:#ca6039;--accent-2:#e68b61;--accent-soft:rgba(202,96,57,.13);--ink:#33221d;--muted:#89776e;--page:#fbf5ef;--ring-track:rgba(129,101,86,.16);--shadow:0 18px 42px rgba(88,60,45,.12);--hero-image:url("theme-background-terracotta.svg")}
-:root[data-theme="green"]{--accent:#628354;--accent-2:#93b07d;--accent-soft:rgba(98,131,84,.14);--ink:#203827;--muted:#74806f;--page:#f4f7f1;--ring-track:rgba(81,107,75,.16);--shadow:0 18px 42px rgba(52,76,48,.11);--hero-image:url("theme-background-green.svg")}
+:root[data-theme="blue"]{--accent:#2e7de9;--accent-2:#63a7ff;--accent-soft:rgba(46,125,233,.13);--ink:#102845;--muted:#6e8199;--page:#f3f8fe;--ring-track:rgba(55,104,164,.16);--shadow:0 18px 42px rgba(35,74,118,.12);--hero-image:url("theme-background-blue.webp")}
+:root[data-theme="terracotta"]{--accent:#ca6039;--accent-2:#e68b61;--accent-soft:rgba(202,96,57,.13);--ink:#33221d;--muted:#89776e;--page:#fbf5ef;--ring-track:rgba(129,101,86,.16);--shadow:0 18px 42px rgba(88,60,45,.12);--hero-image:url("theme-background-terracotta.webp")}
+:root[data-theme="green"]{--accent:#628354;--accent-2:#93b07d;--accent-soft:rgba(98,131,84,.14);--ink:#203827;--muted:#74806f;--page:#f4f7f1;--ring-track:rgba(81,107,75,.16);--shadow:0 18px 42px rgba(52,76,48,.11);--hero-image:url("theme-background-green.webp")}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--page);min-height:100%}
 body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif;background:var(--page);color:var(--ink);overflow-x:hidden}
