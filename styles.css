@@ -3310,21 +3310,6 @@ body{
 }
 
 /* Ember v40: editable steppers, press-repeat, ring logo, Midnight artwork */
-.ember-logo-mark{
-  width:30px;
-  height:34px;
-  margin-bottom:2px;
-  fill:none;
-  stroke:#fff;
-  stroke-width:2.6;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  opacity:.96;
-  filter:drop-shadow(0 2px 8px rgba(0,0,0,.12));
-}
-.progress-wrap.just-added .ember-logo-mark{
-  animation:ember-mark-lift .58s ease-out;
-}
 .count-line-button{
   padding:0;
   border:0;
@@ -3390,12 +3375,9 @@ body{
   transform:scale(.94);
 }
 :root[data-theme="dark"]{
-  --hero-image:url("theme-background-midnight.svg");
+  --hero-image:url("theme-background-midnight.webp");
   --hero-overlay:linear-gradient(180deg,rgba(3,5,14,.08),rgba(10,11,13,.18));
   --system-top:#080a13;
-}
-:root[data-theme="dark"] .ember-logo-mark{
-  stroke:#fff7e6;
 }
 :root[data-theme="dark"] .stepper-value-input:focus{
   background:rgba(199,154,53,.10);
