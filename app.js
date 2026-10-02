@@ -207,7 +207,7 @@
     days.forEach((date,index)=>{
       const count=counts[index],button=document.createElement("button"),future=date>now&&!isSameLocalDay(date,now),known=count!=null,manual=manualCountForDay(date)!=null;
       const weekday=new Intl.DateTimeFormat("de-AT",{weekday:"short"}).format(date).replace(".","");
-      const level=known?Math.max(1,Math.ceil(count/max*4)):0;
+      const level=known&&count>0?Math.max(1,Math.ceil(count/max*4)):0;
       button.type="button";
       button.className="week-day";
       button.dataset.level=String(level);
@@ -245,7 +245,7 @@
     }
     for(let day=1;day<=daysInMonth;day++){
       const date=new Date(year,month,day),count=monthCounts[day-1],cell=document.createElement("button");
-      const future=date>now&&!isSameLocalDay(date,now),known=count!=null,manual=manualCountForDay(date)!=null,level=known?Math.max(1,Math.ceil(count/Math.max(max,1)*4)):0;
+      const future=date>now&&!isSameLocalDay(date,now),known=count!=null,manual=manualCountForDay(date)!=null,level=known&&count>0?Math.max(1,Math.ceil(count/Math.max(max,1)*4)):0;
       cell.type="button";
       cell.className="month-day";
       cell.dataset.level=String(level);
@@ -296,6 +296,81 @@
   function openDaySheet(date){
     renderDaySheet(date);
     openSheet(els.todaySheet);
+  }
+  function dateInputValue(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  }
+  function parseDateInput(value){
+    const parts=String(value||"").split("-").map(Number);
+    if(parts.length!==3||parts.some(Number.isNaN))return null;
+    return new Date(parts[0],parts[1]-1,parts[2]);
+  }
+  function updateBackfillSheetForDate(){
+    const date=parseDateInput(els.backfillDate.value);
+    if(!date)return;
+    const manual=manualCountForDay(date),exact=entriesForDay(dayStart(date)).length;
+    backfillCountValue=manual!=null?manual:exact;
+    els.backfillCount.textContent=String(backfillCountValue);
+    els.deleteBackfillButton.hidden=manual==null;
+  }
+  function openBackfillSheet(date=null){
+    const yesterday=addDays(new Date(),-1),chosen=date&&dayStart(date)<dayStart()?new Date(date):yesterday;
+    els.backfillDate.max=dateInputValue(yesterday);
+    els.backfillDate.value=dateInputValue(chosen);
+    updateBackfillSheetForDate();
+    openSheet(els.backfillSheet);
+  }
+  function saveBackfill(){
+    const date=parseDateInput(els.backfillDate.value);
+    if(!date||dayStart(date)>=dayStart()){alert("Nachtragen ist nur für vergangene Tage möglich.");return}
+    const exact=entriesForDay(dayStart(date)).length;
+    if(backfillCountValue<exact){
+      alert(`Für diesen Tag sind bereits ${exact} Einträge mit Uhrzeit gespeichert. Die nachgetragene Anzahl kann nicht kleiner sein.`);
+      return;
+    }
+    manualDailyCounts[localDateKey(date)]=clamp(Math.round(backfillCountValue),0,99);
+    saveManualCounts();
+    const returnDate=activeDaySheetDate&&isSameLocalDay(activeDaySheetDate,date)?new Date(activeDaySheetDate):null;
+    closeSheets();
+    render();
+    setTimeout(()=>showToast("Tag nachgetragen",false),240);
+    if(returnDate)setTimeout(()=>openDaySheet(returnDate),320);
+  }
+  function deleteBackfill(){
+    const date=parseDateInput(els.backfillDate.value);
+    if(!date)return;
+    delete manualDailyCounts[localDateKey(date)];
+    saveManualCounts();
+    const returnDate=activeDaySheetDate&&isSameLocalDay(activeDaySheetDate,date)?new Date(activeDaySheetDate):null;
+    closeSheets();
+    render();
+    setTimeout(()=>showToast("Nachtrag entfernt",false),240);
+    if(returnDate)setTimeout(()=>openDaySheet(returnDate),320);
+  }
+  function formatRemaining(minutes){
+    const mins=Math.max(0,Math.round(minutes));
+    if(mins<60)return`${mins} Min.`;
+    const h=Math.floor(mins/60),m=mins%60;
+    return m?`${h} Std. ${m} Min.`:`${h} Std.`;
+  }
+  function renderPauseConfirm(){
+    const status=pauseStatusData();
+    if(status.state==="empty"||status.state==="reached")return false;
+    els.pauseConfirmTime.textContent=`Noch ${formatRemaining(status.remaining)}`;
+    els.pauseConfirmSubtitle.textContent="bis zu deiner Pause";
+    els.pauseConfirmFill.style.width=`${Math.max(3,Math.round(status.progress*100))}%`;
+    return true;
+  }
+  function requestAddEntry(){
+    const today=todaysEntries();
+    if(!today.length){addEntry();return}
+    const status=pauseStatusData();
+    if(status.state==="waiting"||status.state==="close"){
+      renderPauseConfirm();
+      openSheet(els.pauseConfirmSheet);
+      return;
+    }
+    addEntry();
   }
   function formatGap(mins){if(mins==null)return"–";if(mins<=0)return"< 1 Min.";if(mins<60)return`${mins} Min.`;const h=Math.floor(mins/60),m=mins%60;return m?`${h} Std. ${m} Min.`:`${h} Std.`}
   function latestEntry(){return entries.length?entries[entries.length-1]:null}
@@ -489,12 +564,12 @@
   function hideToast(){clearTimeout(toastTimer);els.toast.classList.remove("is-visible");els.toast.setAttribute("aria-hidden","true")}
   function showToast(text,undo){hideToast();els.toastText.textContent=text;els.undoButton.hidden=!undo;els.toast.classList.add("is-visible");els.toast.setAttribute("aria-hidden","false");toastTimer=setTimeout(hideToast,3600)}
   function openSheet(sheet){hideToast();closeSheets(false);els.modalBackdrop.hidden=false;requestAnimationFrame(()=>{els.modalBackdrop.classList.add("is-visible");sheet.classList.add("is-open")});sheet.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
-  function closeSheets(hide=true){[els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet].forEach(s=>{s.classList.remove("is-open");s.setAttribute("aria-hidden","true")});if(hide){els.modalBackdrop.classList.remove("is-visible");setTimeout(()=>{els.modalBackdrop.hidden=true;document.body.style.overflow=""},210)}}
+  function closeSheets(hide=true){[els.pauseConfirmSheet,els.backfillSheet,els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet].forEach(s=>{s.classList.remove("is-open");s.setAttribute("aria-hidden","true")});if(hide){els.modalBackdrop.classList.remove("is-visible");setTimeout(()=>{els.modalBackdrop.hidden=true;document.body.style.overflow=""},210)}}
   function openEdit(id){const entry=entries.find(x=>x.id===id);if(!entry)return;editingId=id;const d=new Date(entry.time);els.editTime.value=`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;openSheet(els.editSheet)}
   function saveEdit(){const entry=entries.find(x=>x.id===editingId);if(!entry||!els.editTime.value)return;const [h,m]=els.editTime.value.split(":").map(Number),d=new Date(entry.time);d.setHours(h,m,0,0);entry.time=d.toISOString();entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();closeSheets();render();setTimeout(()=>showToast("Eintrag aktualisiert",false),240)}
   function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();setTimeout(()=>showToast("Eintrag gelöscht",false),240)}
   function setTheme(theme){if(!THEMES[theme])return;settings.theme=theme;saveSettings();applyTheme();render()}
-  function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+  function exportData(){const payload={app:"Ember",version:"1.1",exportedAt:new Date().toISOString(),settings,entries,manualDailyCounts};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   function sanitizeImportedEntries(raw){
     if(!Array.isArray(raw))throw new Error("Keine gültigen Einträge gefunden.");
     const seen=new Set(),clean=[];
@@ -512,13 +587,15 @@
     try{
       const raw=JSON.parse(await file.text());
       if(!raw||typeof raw!=="object"||!Array.isArray(raw.entries))throw new Error("Das ist kein gültiges Ember-Backup.");
-      const importedEntries=sanitizeImportedEntries(raw.entries),importedSettings=normalizeSettings(raw.settings||{});
+      const importedEntries=sanitizeImportedEntries(raw.entries),importedSettings=normalizeSettings(raw.settings||{}),importedManualCounts=sanitizeManualCounts(raw.manualDailyCounts||{});
       const ok=confirm(`Backup mit ${importedEntries.length} ${importedEntries.length===1?"Eintrag":"Einträgen"} importieren? Deine aktuellen Daten werden ersetzt.`);
       if(!ok)return;
       entries=importedEntries;
       settings=importedSettings;
+      manualDailyCounts=importedManualCounts;
       saveEntries();
       saveSettings();
+      saveManualCounts();
       analysisWeekOffset=0;
       analysisMonthOffset=0;
       analysisSummaryMode="week";
@@ -532,7 +609,17 @@
       els.importDataInput.value="";
     }
   }
-  els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
+  els.addButton.addEventListener("click",requestAddEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>openDaySheet(new Date()));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
+  els.pauseWaitButton.addEventListener("click",()=>closeSheets());
+  els.pauseAddAnywayButton.addEventListener("click",()=>{closeSheets();addEntry()});
+  els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
+  els.dayBackfillButton.addEventListener("click",()=>{if(activeDaySheetDate)openBackfillSheet(activeDaySheetDate)});
+  els.backfillDate.addEventListener("change",updateBackfillSheetForDate);
+  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.textContent=String(backfillCountValue)});
+  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.textContent=String(backfillCountValue)});
+  els.saveBackfillButton.addEventListener("click",saveBackfill);
+  els.deleteBackfillButton.addEventListener("click",deleteBackfill);
+  els.closeBackfillSheet.addEventListener("click",()=>closeSheets());
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));
   els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
   els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
@@ -557,9 +644,9 @@
   els.exportDataButton.addEventListener("click",exportData);
   els.importDataButton.addEventListener("click",()=>{els.importDataInput.value="";els.importDataInput.click()});
   els.importDataInput.addEventListener("change",()=>importData(els.importDataInput.files&&els.importDataInput.files[0]));
-  els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
+  els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];manualDailyCounts={};saveEntries();saveManualCounts();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});
   els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
-  setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+  setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();if(els.pauseConfirmSheet.getAttribute("aria-hidden")==="false"){if(!renderPauseConfirm())closeSheets()}renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 })();
