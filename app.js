@@ -2,7 +2,7 @@
   "use strict";
   const STORAGE_ENTRIES="ember.v1.entries";
   const STORAGE_SETTINGS="ember.v1.settings";
-  const THEMES={violet:{name:"Violett",themeColor:"#f6f4ff"},blue:{name:"Blau",themeColor:"#f3f8fe"},terracotta:{name:"Terrakotta",themeColor:"#fbf5ef"},green:{name:"Grün",themeColor:"#f4f7f1"}};
+  const THEMES={violet:{name:"Violett",themeColor:"#f6f4ff"},blue:{name:"Blau",themeColor:"#f3f8fe"},terracotta:{name:"Terrakotta",themeColor:"#fbf5ef"},green:{name:"Grün",themeColor:"#f4f7f1"},dark:{name:"Dunkel",themeColor:"#12110f"}};
   const THEME_MIGRATION={orange:"terracotta",teal:"blue",graphite:"violet"};
   const $=id=>document.getElementById(id);
   const els={
@@ -52,7 +52,7 @@
     const status=pauseStatusData(),goal=settings.pauseGoal;
     if(status.state==="empty"){
       els.homePauseValue.textContent=`${goal} Min.`;
-      els.homePauseHint.textContent="Startet mit dem ersten Eintrag";
+      els.homePauseHint.textContent="Eingestellt";
     }else if(status.state==="reached"){
       const extra=Math.max(0,status.elapsed-goal);
       els.homePauseValue.textContent=extra>0?`+${extra} Min.`:"Geschafft";
