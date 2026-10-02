@@ -8,12 +8,12 @@
   const $=id=>document.getElementById(id);
   const els={
     pagerTrack:$("pagerTrack"),homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
-    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),progressWrap:$("progressWrap"),
+    dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),limitQuickButton:$("limitQuickButton"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),progressWrap:$("progressWrap"),
     addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySheetTitle:$("daySheetTitle"),todaySheetSummary:$("todaySheetSummary"),dayDetailCount:$("dayDetailCount"),dayDetailFirst:$("dayDetailFirst"),dayDetailAverage:$("dayDetailAverage"),dayDetailBest:$("dayDetailBest"),dayDetailTimeline:$("dayDetailTimeline"),dayDetailStatus:$("dayDetailStatus"),dayBackfillButton:$("dayBackfillButton"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),backfillTile:$("backfillTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
     modalBackdrop:$("modalBackdrop"),pauseConfirmSheet:$("pauseConfirmSheet"),backfillSheet:$("backfillSheet"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
-    limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitLater:$("smartLimitLater"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
+    limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitToggle:$("smartLimitToggle"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitLater:$("smartLimitLater"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
     pauseConfirmTime:$("pauseConfirmTime"),pauseConfirmSubtitle:$("pauseConfirmSubtitle"),pauseConfirmFill:$("pauseConfirmFill"),pauseConfirmMessage:$("pauseConfirmMessage"),pauseWaitButton:$("pauseWaitButton"),pauseAddAnywayButton:$("pauseAddAnywayButton"),pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillLimitHint:$("backfillLimitHint"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
@@ -48,6 +48,7 @@
       pauseGoal:Number.isFinite(Number(raw.pauseGoal))?clamp(Math.round(Number(raw.pauseGoal)/5)*5,5,240):50,
       smartPauseSuggestions:userSet?Boolean(raw.smartPauseSuggestions):true,
       smartPauseUserSet:userSet,
+      smartLimitSuggestions:raw.smartLimitSuggestions!==false,
       limitChangedAt:num(raw.limitChangedAt),
       pauseGoalChangedAt:num(raw.pauseGoalChangedAt),
       limitSuggestionSnoozedUntil:num(raw.limitSuggestionSnoozedUntil),
@@ -477,6 +478,7 @@
     if(suggestion)els.smartPauseText.textContent=`5 Tage stabil · ${suggestion} Min. ausprobieren?`;
   }
   function smartLimitSuggestion(){
+    if(!settings.smartLimitSuggestions)return null;
     const limit=settings.limit;
     if(limit<=1||Date.now()<settings.limitSuggestionSnoozedUntil)return null;
     const changedDay=settings.limitChangedAt?dayStart(new Date(settings.limitChangedAt)):0;
@@ -537,10 +539,11 @@
     renderPauseStatus();
     els.progressCircle.style.strokeDashoffset=String(100-progress*100);
     els.limitTileValue.textContent=`${limit} Zigaretten`;
-    els.settingsLimitValue.textContent=limit;
+    els.settingsLimitValue.value=String(limit);
+    els.smartLimitToggle.checked=settings.smartLimitSuggestions;
     renderSmartLimitSuggestion();
     els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;
-    els.settingsPauseValue.textContent=settings.pauseGoal;
+    els.settingsPauseValue.value=String(settings.pauseGoal);
     renderSmartPauseSuggestion();
     renderDaySummary(today);
     renderTodaySheet();
@@ -795,37 +798,85 @@
     closeSheets();
     setTimeout(()=>addEntry(),230);
   });
+  function setDailyLimit(value){
+    const next=clamp(Math.round(Number(value)||settings.limit),1,99);
+    if(next===settings.limit){els.settingsLimitValue.value=String(next);return}
+    settings.limit=next;
+    settings.limitChangedAt=Date.now();
+    settings.limitSuggestionSnoozedUntil=0;
+    saveSettings();
+    render();
+  }
+  function setPauseGoal(value){
+    const raw=Number(value);
+    const next=clamp(Math.round((Number.isFinite(raw)?raw:settings.pauseGoal)/5)*5,5,240);
+    if(next===settings.pauseGoal){els.settingsPauseValue.value=String(next);return}
+    settings.pauseGoal=next;
+    settings.pauseGoalChangedAt=Date.now();
+    settings.pauseSuggestionSnoozedUntil=0;
+    saveSettings();
+    render();
+  }
+  function setBackfillCount(value){
+    backfillCountValue=clamp(Math.round(Number(value)||0),0,99);
+    els.backfillCount.value=String(backfillCountValue);
+    renderBackfillLimitHint();
+  }
+  function bindPressRepeat(button,action){
+    let holdTimer=null,repeatTimer=null,repeated=false;
+    const clear=()=>{clearTimeout(holdTimer);clearInterval(repeatTimer);holdTimer=repeatTimer=null};
+    button.addEventListener("pointerdown",event=>{
+      if(event.pointerType==="mouse"&&event.button!==0)return;
+      repeated=false;
+      clear();
+      holdTimer=setTimeout(()=>{
+        repeated=true;
+        action();
+        repeatTimer=setInterval(action,90);
+      },360);
+    });
+    ["pointerup","pointercancel","pointerleave"].forEach(type=>button.addEventListener(type,clear));
+    button.addEventListener("click",event=>{
+      if(repeated){event.preventDefault();repeated=false;return}
+      action();
+    });
+    button.addEventListener("contextmenu",event=>event.preventDefault());
+  }
   els.backfillTile.addEventListener("click",()=>{activeDaySheetDate=null;openBackfillSheet()});
   els.dayBackfillButton.addEventListener("click",()=>{if(activeDaySheetDate)openBackfillSheet(activeDaySheetDate)});
   els.backfillDate.addEventListener("change",updateBackfillSheetForDate);
   els.backfillCount.addEventListener("focus",()=>els.backfillCount.select());
   els.backfillCount.addEventListener("input",()=>{
     const raw=Number(els.backfillCount.value);
-    if(Number.isFinite(raw)){backfillCountValue=clamp(Math.round(raw),0,99);renderBackfillLimitHint();}
+    if(Number.isFinite(raw)){backfillCountValue=clamp(Math.round(raw),0,99);renderBackfillLimitHint()}
   });
-  els.backfillCount.addEventListener("change",()=>{
-    const raw=Number(els.backfillCount.value);
-    backfillCountValue=Number.isFinite(raw)?clamp(Math.round(raw),0,99):0;
-    els.backfillCount.value=String(backfillCountValue);
-    renderBackfillLimitHint();
-  });
-  els.backfillMinus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue-1,0,99);els.backfillCount.value=String(backfillCountValue);renderBackfillLimitHint()});
-  els.backfillPlus.addEventListener("click",()=>{backfillCountValue=clamp(backfillCountValue+1,0,99);els.backfillCount.value=String(backfillCountValue);renderBackfillLimitHint()});
+  els.backfillCount.addEventListener("change",()=>setBackfillCount(els.backfillCount.value));
+  bindPressRepeat(els.backfillMinus,()=>setBackfillCount(backfillCountValue-1));
+  bindPressRepeat(els.backfillPlus,()=>setBackfillCount(backfillCountValue+1));
   els.saveBackfillButton.addEventListener("click",saveBackfill);
   els.deleteBackfillButton.addEventListener("click",deleteBackfill);
   els.closeBackfillSheet.addEventListener("click",()=>closeSheets());
-  els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));
-  els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
-  els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
+
+  const openLimitSheet=()=>{render();openSheet(els.limitSheet);setTimeout(()=>els.settingsLimitValue.focus({preventScroll:true}),220)};
+  els.limitTile.addEventListener("click",openLimitSheet);
+  els.limitQuickButton.addEventListener("click",openLimitSheet);
+  els.settingsLimitValue.addEventListener("focus",()=>els.settingsLimitValue.select());
+  els.settingsLimitValue.addEventListener("change",()=>setDailyLimit(els.settingsLimitValue.value));
+  bindPressRepeat(els.limitMinus,()=>setDailyLimit(settings.limit-1));
+  bindPressRepeat(els.limitPlus,()=>setDailyLimit(settings.limit+1));
+  els.smartLimitToggle.addEventListener("change",()=>{settings.smartLimitSuggestions=els.smartLimitToggle.checked;saveSettings();render()});
   els.smartLimitLater.addEventListener("click",()=>{settings.limitSuggestionSnoozedUntil=snoozeUntil(7);saveSettings();render()});
-  els.smartLimitApply.addEventListener("click",()=>{const suggestion=smartLimitSuggestion();if(!suggestion)return;settings.limit=suggestion;settings.limitChangedAt=Date.now();settings.limitSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.smartLimitApply.addEventListener("click",()=>{const suggestion=smartLimitSuggestion();if(!suggestion)return;setDailyLimit(suggestion)});
   els.closeLimitSheet.addEventListener("click",()=>closeSheets());
+
   els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));
-  els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
-  els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.settingsPauseValue.addEventListener("focus",()=>els.settingsPauseValue.select());
+  els.settingsPauseValue.addEventListener("change",()=>setPauseGoal(els.settingsPauseValue.value));
+  bindPressRepeat(els.pauseMinus,()=>setPauseGoal(settings.pauseGoal-5));
+  bindPressRepeat(els.pausePlus,()=>setPauseGoal(settings.pauseGoal+5));
   els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});
   els.smartPauseLater.addEventListener("click",()=>{settings.pauseSuggestionSnoozedUntil=snoozeUntil(7);saveSettings();render()});
-  els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;settings.pauseGoalChangedAt=Date.now();settings.pauseSuggestionSnoozedUntil=0;saveSettings();render()});
+  els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;setPauseGoal(suggestion)});
   els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
   els.summaryWeekButton.addEventListener("click",()=>{analysisSummaryMode="week";renderPeriodSummary()});
