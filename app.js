@@ -627,7 +627,7 @@
 
       const atLeft=startIndex===0&&dx>0;
       const atRight=startIndex===2&&dx<0;
-      const resistance=(atLeft||atRight)?.24:1;
+      const resistance=(atLeft||atRight)?0.24:1;
       setPagerTransform(pagerOffset(startIndex)+dx*resistance,false);
     },{passive:false});
 
