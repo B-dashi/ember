@@ -643,7 +643,7 @@
       }
       event.preventDefault();
       const atStart=startIndex===0&&dx>0,atEnd=startIndex===2&&dx<0;
-      const resistance=atStart||atEnd?.28:1;
+      const resistance=(atStart||atEnd)?.28:1;
       setPagerTransform(pagerOffset(startIndex)+dx*resistance,false);
     });
 
