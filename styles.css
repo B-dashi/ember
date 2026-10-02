@@ -2697,3 +2697,87 @@ html{
 :root[data-theme="dark"] .month-day.is-over-limit small{
   color:#e39487;
 }
+
+/* Ember v34: three-page pager navigation */
+.app-shell{
+  isolation:isolate;
+}
+.view{
+  width:100%;
+  transform:translate3d(0,0,0);
+  will-change:transform,opacity;
+}
+.view.page-entering,
+.view.page-leaving{
+  position:absolute;
+  inset:0 0 auto 0;
+  width:100%;
+  min-height:100vh;
+  background:var(--page);
+}
+.view.swipe-dragging{
+  transition:none!important;
+}
+.view.swipe-snapback{
+  transition:transform 210ms cubic-bezier(.22,.78,.24,1),opacity 180ms ease!important;
+}
+.page-dots{
+  position:fixed;
+  left:50%;
+  bottom:calc(env(safe-area-inset-bottom) + 8px);
+  z-index:18;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:5px 7px;
+  border-radius:999px;
+  transform:translateX(-50%);
+  background:color-mix(in srgb,var(--card) 72%,transparent);
+  border:1px solid color-mix(in srgb,var(--card-border) 84%,transparent);
+  box-shadow:0 7px 20px color-mix(in srgb,var(--ink) 8%,transparent);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.page-dot{
+  position:relative;
+  width:22px;
+  height:22px;
+  padding:0;
+  background:transparent;
+  border-radius:999px;
+}
+.page-dot::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  transform:translate(-50%,-50%);
+  background:color-mix(in srgb,var(--muted) 48%,transparent);
+  transition:width 240ms cubic-bezier(.22,.78,.24,1),background 200ms ease,box-shadow 200ms ease;
+}
+.page-dot.is-active::before{
+  width:15px;
+  background:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+.modal-backdrop:not([hidden])~.page-dots{
+  pointer-events:none;
+}
+:root[data-theme="dark"] .page-dots{
+  background:rgba(18,19,22,.76);
+  border-color:rgba(211,177,91,.09);
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+:root[data-theme="dark"] .page-dot.is-active::before{
+  background:var(--accent-2);
+}
+@media(prefers-reduced-motion:reduce){
+  .view,
+  .page-dot::before{
+    transition:none!important;
+  }
+}
