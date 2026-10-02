@@ -8,15 +8,15 @@
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),
-    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),entryList:$("entryList"),entriesCard:$("entriesCard"),emptyState:$("emptyState"),
+    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySummaryFooter:$("daySummaryFooter"),todaySheet:$("todaySheet"),todaySheetSummary:$("todaySheetSummary"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
     limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
-    modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),editSheet:$("editSheet"),
+    modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
     limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),closeLimitSheet:$("closeLimitSheet"),
     pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
     exportDataButton:$("exportDataButton"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
-    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),patternList:$("patternList"),timelinePlot:$("timelinePlot"),timelineEmpty:$("timelineEmpty"),weekChart:$("weekChart"),
+    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisGapToday:$("analysisGapToday"),analysisLongestToday:$("analysisLongestToday"),analysisBestWeek:$("analysisBestWeek"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),patternList:$("patternList"),timelinePlot:$("timelinePlot"),timelineEmpty:$("timelineEmpty"),weekChart:$("weekChart"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null;
@@ -35,6 +35,71 @@
   function averageFromGaps(gaps){if(!gaps.length)return null;return Math.round(gaps.reduce((sum,value)=>sum+value,0)/gaps.length)}
   function averageMinutes(list=todaysEntries()){return averageFromGaps(gapMinutes(list))}
   function longestGap(gaps){return gaps.length?Math.max(...gaps):null}
+  function weeklyBestPause(){
+    let best=null,base=dayStart();
+    for(let i=0;i<7;i++){
+      const value=longestGap(gapMinutes(entriesForDay(base-i*86400000)));
+      if(value!=null&&(best==null||value>best))best=value;
+    }
+    return best;
+  }
+  function yesterdayEntries(){const d=new Date();d.setDate(d.getDate()-1);return entriesForDay(dayStart(d))}
+  function firstEntryLaterText(today){
+    if(!today.length)return"";
+    const yesterday=yesterdayEntries();
+    if(!yesterday.length)return"";
+    const t=new Date(today[0].time),y=new Date(yesterday[0].time);
+    const todayMinutes=t.getHours()*60+t.getMinutes(),yesterdayMinutes=y.getHours()*60+y.getMinutes(),diff=todayMinutes-yesterdayMinutes;
+    if(diff<=0)return"";
+    if(diff<60)return`${diff} Min. später als gestern`;
+    const h=Math.floor(diff/60),m=diff%60;
+    return m?`${h} Std. ${m} Min. später als gestern`:`${h} Std. später als gestern`;
+  }
+  function renderMiniTimeline(today){
+    els.dayMiniTimeline.innerHTML="";
+    if(!today.length){
+      els.dayMiniTimeline.classList.add("is-empty");
+      return;
+    }
+    els.dayMiniTimeline.classList.remove("is-empty");
+    today.forEach(entry=>{
+      const d=new Date(entry.time),minutes=d.getHours()*60+d.getMinutes(),dot=document.createElement("span");
+      dot.className="day-mini-dot";
+      dot.style.left=`${clamp(minutes/1440*100,1.5,98.5)}%`;
+      els.dayMiniTimeline.appendChild(dot);
+    });
+  }
+  function renderDaySummary(today){
+    const count=today.length,first=today[0],last=today[today.length-1],gaps=gapMinutes(today),best=longestGap(gaps),later=firstEntryLaterText(today);
+    els.entryCountLabel.textContent=String(count);
+    els.dayFirstEntry.textContent=first?formatTime(new Date(first.time)):"–";
+    els.dayBestPause.textContent=formatGap(best);
+    els.dayFirstCompare.hidden=!later;
+    els.dayFirstCompare.textContent=later;
+    renderMiniTimeline(today);
+    if(!count){
+      els.daySummaryFooter.textContent="Noch keine Einträge heute";
+    }else if(count===1){
+      els.daySummaryFooter.textContent=`Letzter Eintrag ${formatTime(new Date(last.time))}`;
+    }else{
+      els.daySummaryFooter.textContent=`Letzter ${formatTime(new Date(last.time))} · Beste Pause ${formatGap(best))}`;
+    }
+  }
+  function renderTodaySheet(){
+    const today=todaysEntries(),gaps=gapMinutes(today),best=longestGap(gaps);
+    els.todaySheetSummary.textContent=today.length
+      ?`${today.length} ${today.length===1?"Eintrag":"Einträge"} · Erste ${formatTime(new Date(today[0].time))} · Beste Pause ${formatGap(best))}`
+      :"Noch keine Einträge heute.";
+    els.todaySheetList.innerHTML="";
+    [...today].reverse().forEach((entry,index)=>{
+      const row=document.createElement("button");
+      row.type="button";
+      row.className="today-sheet-row";
+      row.innerHTML=`<span><strong>${formatTime(new Date(entry.time))}</strong><small>${relativeTime(new Date(entry.time))}</small></span><span>${today.length-index}. ›</span>`;
+      row.addEventListener("click",()=>openEdit(entry.id));
+      els.todaySheetList.appendChild(row);
+    });
+  }
   function formatGap(mins){if(mins==null)return"–";if(mins<=0)return"< 1 Min.";if(mins<60)return`${mins} Min.`;const h=Math.floor(mins/60),m=mins%60;return m?`${h} Std. ${m} Min.`:`${h} Std.`}
   function latestEntry(){return entries.length?entries[entries.length-1]:null}
   function pauseStatusData(){
@@ -114,13 +179,42 @@
   function yesterdayCountAtCurrentTime(){const now=new Date(),todayStart=dayStart(now),elapsed=now.getTime()-todayStart,yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);const start=dayStart(yesterday),cutoff=start+elapsed;return entries.filter(item=>{const t=Date.parse(item.time);return t>=start&&t<=cutoff}).length}
   function comparisonCopy(todayCount){const yesterdayCount=yesterdayCountAtCurrentTime(),diff=todayCount-yesterdayCount;if(diff===0)return"Gleich wie gestern um diese Uhrzeit";const amount=Math.abs(diff);return`${amount} ${diff<0?"weniger":"mehr"} als gestern um diese Uhrzeit`}
   function applyTheme(){document.documentElement.dataset.theme=settings.theme;document.querySelector('meta[name="theme-color"]')?.setAttribute("content",THEMES[settings.theme].themeColor);els.designTileValue.textContent=THEMES[settings.theme].name;els.themeList.querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.theme===settings.theme)))}
-  function render(){const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1);els.dateLabel.textContent=formatDate();els.todayCount.textContent=count;els.limitCount.textContent=limit;els.remainingText.textContent=`Tageslimit ${limit}`;renderPauseStatus();els.progressCircle.style.strokeDashoffset=String(100-progress*100);els.limitTileValue.textContent=`${limit} Zigaretten`;els.settingsLimitValue.textContent=limit;els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;els.settingsPauseValue.textContent=settings.pauseGoal;renderSmartPauseSuggestion();els.analysisComparisonCount.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"}`;els.analysisComparisonText.textContent=comparisonCopy(count);els.entryCountLabel.textContent=count===1?"1 Eintrag":`${count} Einträge`;els.entriesCard.classList.toggle("is-compact",count<=2);els.entriesCard.classList.toggle("is-empty",count===0);if(newest){const d=new Date(newest.time);els.lastTime.textContent=formatTime(d);els.lastRelative.textContent=relativeTime(d);els.lastCard.disabled=false}else{els.lastTime.textContent="–";els.lastRelative.textContent="Noch kein Eintrag";els.lastCard.disabled=true}els.entryList.innerHTML="";[...today].reverse().forEach((entry,index)=>{const b=document.createElement("button");b.type="button";b.className="entry-row";const n=count-index,t=formatTime(new Date(entry.time));b.innerHTML=`<span class="entry-dot"></span><span class="entry-time">${t}</span><span class="entry-number">${n}.</span><span class="entry-chevron">›</span>`;b.addEventListener("click",()=>openEdit(entry.id));els.entryList.appendChild(b)});els.emptyState.hidden=count>0;renderAnalysis()}
+  function render(){
+    const today=todaysEntries(),count=today.length,limit=settings.limit,newest=today[today.length-1],progress=clamp(count/limit,0,1);
+    els.dateLabel.textContent=formatDate();
+    els.todayCount.textContent=count;
+    els.limitCount.textContent=limit;
+    els.remainingText.textContent=`Tageslimit ${limit}`;
+    renderPauseStatus();
+    els.progressCircle.style.strokeDashoffset=String(100-progress*100);
+    els.limitTileValue.textContent=`${limit} Zigaretten`;
+    els.settingsLimitValue.textContent=limit;
+    els.pauseTileValue.textContent=`${settings.pauseGoal} Minuten`;
+    els.settingsPauseValue.textContent=settings.pauseGoal;
+    renderSmartPauseSuggestion();
+    els.analysisComparisonCount.textContent=`${count} ${count===1?"Zigarette":"Zigaretten"}`;
+    els.analysisComparisonText.textContent=comparisonCopy(count);
+    renderDaySummary(today);
+    renderTodaySheet();
+
+    if(newest){
+      const d=new Date(newest.time);
+      els.lastTime.textContent=formatTime(d);
+      els.lastRelative.textContent=relativeTime(d);
+      els.lastCard.disabled=false;
+    }else{
+      els.lastTime.textContent="–";
+      els.lastRelative.textContent="Noch kein Eintrag";
+      els.lastCard.disabled=true;
+    }
+    renderAnalysis();
+  }
   function renderAnalysis(){
-    const today=todaysEntries(),count=today.length,todayGaps=gapMinutes(today),avgToday=averageFromGaps(todayGaps),longestToday=longestGap(todayGaps),goal=settings.pauseGoal,hit=todayGaps.filter(value=>value>=goal).length,total=todayGaps.length;
+    const today=todaysEntries(),count=today.length,todayGaps=gapMinutes(today),avgToday=averageFromGaps(todayGaps),longestToday=longestGap(todayGaps),bestWeek=weeklyBestPause(),goal=settings.pauseGoal,hit=todayGaps.filter(value=>value>=goal).length,total=todayGaps.length;
     els.analysisToday.textContent=count;
     els.analysisRemaining.textContent=Math.max(settings.limit-count,0);
     els.analysisGapToday.textContent=formatGap(avgToday);
-    els.analysisLongestToday.textContent=formatGap(longestToday);
+    els.analysisLongestToday.textContent=formatGap(longestToday);els.analysisBestWeek.textContent=formatGap(bestWeek);
     els.analysisPauseGoal.textContent=`${goal} Min. eingestellt`;
     els.analysisPauseHit.textContent=total?`${hit} / ${total}`:"–";
     els.analysisPauseCaption.textContent=total?`${total} abgeschlossene ${total===1?"Pause":"Pausen"} · Ziel ${goal} Min.`:"Noch keine abgeschlossene Pause";
@@ -193,17 +287,17 @@
   function hideToast(){clearTimeout(toastTimer);els.toast.classList.remove("is-visible");els.toast.setAttribute("aria-hidden","true")}
   function showToast(text,undo){hideToast();els.toastText.textContent=text;els.undoButton.hidden=!undo;els.toast.classList.add("is-visible");els.toast.setAttribute("aria-hidden","false");toastTimer=setTimeout(hideToast,3600)}
   function openSheet(sheet){hideToast();closeSheets(false);els.modalBackdrop.hidden=false;requestAnimationFrame(()=>{els.modalBackdrop.classList.add("is-visible");sheet.classList.add("is-open")});sheet.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
-  function closeSheets(hide=true){[els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.editSheet].forEach(s=>{s.classList.remove("is-open");s.setAttribute("aria-hidden","true")});if(hide){els.modalBackdrop.classList.remove("is-visible");setTimeout(()=>{els.modalBackdrop.hidden=true;document.body.style.overflow=""},210)}}
+  function closeSheets(hide=true){[els.limitSheet,els.pauseSheet,els.designSheet,els.dataSheet,els.aboutSheet,els.todaySheet,els.editSheet].forEach(s=>{s.classList.remove("is-open");s.setAttribute("aria-hidden","true")});if(hide){els.modalBackdrop.classList.remove("is-visible");setTimeout(()=>{els.modalBackdrop.hidden=true;document.body.style.overflow=""},210)}}
   function openEdit(id){const entry=entries.find(x=>x.id===id);if(!entry)return;editingId=id;const d=new Date(entry.time);els.editTime.value=`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;openSheet(els.editSheet)}
   function saveEdit(){const entry=entries.find(x=>x.id===editingId);if(!entry||!els.editTime.value)return;const [h,m]=els.editTime.value.split(":").map(Number),d=new Date(entry.time);d.setHours(h,m,0,0);entry.time=d.toISOString();entries.sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));saveEntries();closeSheets();render();setTimeout(()=>showToast("Eintrag aktualisiert",false),240)}
   function deleteEdit(){if(!editingId)return;entries=entries.filter(x=>x.id!==editingId);saveEntries();editingId=null;closeSheets();render();setTimeout(()=>showToast("Eintrag gelöscht",false),240)}
   function setTheme(theme){if(!THEMES[theme])return;settings.theme=theme;saveSettings();applyTheme();render()}
   function exportData(){const payload={app:"Ember",version:"1.0",exportedAt:new Date().toISOString(),settings,entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`ember-export-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-  els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
+  els.addButton.addEventListener("click",addEntry);els.undoButton.addEventListener("click",undoLastAdd);els.analysisButton.addEventListener("click",()=>showView(els.analysisView));els.pauseCardHome.addEventListener("click",()=>openSheet(els.pauseSheet));els.settingsButton.addEventListener("click",()=>showView(els.settingsView));els.daySummaryCard.addEventListener("click",()=>{renderTodaySheet();openSheet(els.todaySheet)});els.settingsBackButton.addEventListener("click",()=>showView(els.homeView));els.analysisBackButton.addEventListener("click",()=>showView(els.homeView));els.lastCard.addEventListener("click",()=>{const t=todaysEntries(),n=t[t.length-1];if(n)openEdit(n.id)});
   els.limitTile.addEventListener("click",()=>openSheet(els.limitSheet));els.limitMinus.addEventListener("click",()=>{settings.limit=clamp(settings.limit-1,1,99);saveSettings();render()});els.limitPlus.addEventListener("click",()=>{settings.limit=clamp(settings.limit+1,1,99);saveSettings();render()});els.closeLimitSheet.addEventListener("click",()=>closeSheets());
   els.pauseTile.addEventListener("click",()=>openSheet(els.pauseSheet));els.pauseMinus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal-5,5,240);saveSettings();render()});els.pausePlus.addEventListener("click",()=>{settings.pauseGoal=clamp(settings.pauseGoal+5,5,240);saveSettings();render()});els.smartPauseToggle.addEventListener("change",()=>{settings.smartPauseSuggestions=els.smartPauseToggle.checked;settings.smartPauseUserSet=true;saveSettings();render()});els.smartPauseApply.addEventListener("click",()=>{const suggestion=smartPauseSuggestion();if(!suggestion)return;settings.pauseGoal=suggestion;saveSettings();render()});els.closePauseSheet.addEventListener("click",()=>closeSheets());
   els.designTile.addEventListener("click",()=>openSheet(els.designSheet));els.themeList.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)setTheme(b.dataset.theme)});els.closeDesignSheet.addEventListener("click",()=>closeSheets());
-  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());
+  els.dataTile.addEventListener("click",()=>openSheet(els.dataSheet));els.exportDataButton.addEventListener("click",exportData);els.resetDataButton.addEventListener("click",()=>{if(confirm("Wirklich alle gespeicherten Zigaretten löschen?")){entries=[];saveEntries();closeSheets();render();setTimeout(()=>showToast("Alle Einträge gelöscht",false),240)}});els.closeDataSheet.addEventListener("click",()=>closeSheets());els.aboutTile.addEventListener("click",()=>openSheet(els.aboutSheet));els.closeAboutSheet.addEventListener("click",()=>closeSheets());els.closeTodaySheet.addEventListener("click",()=>closeSheets());
   els.modalBackdrop.addEventListener("click",()=>closeSheets());els.saveEditButton.addEventListener("click",saveEdit);els.deleteEntryButton.addEventListener("click",deleteEdit);
   setInterval(()=>{const t=todaysEntries(),n=t[t.length-1];if(n)els.lastRelative.textContent=relativeTime(new Date(n.time));renderPauseStatus();els.analysisComparisonText.textContent=comparisonCopy(t.length);renderAnalysis()},30000);window.addEventListener("focus",render);document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
   applyTheme();render();showView(els.homeView);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
