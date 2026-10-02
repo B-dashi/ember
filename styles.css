@@ -3263,3 +3263,48 @@ body{
     height:234px;
   }
 }
+
+/* Ember v39: centered backfill count + limit hint + delayed confirm animation */
+.backfill-stepper{
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr) 58px;
+  align-items:center;
+  gap:18px;
+}
+.backfill-count-center{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+}
+.backfill-count-input{
+  width:100%;
+  max-width:110px;
+  text-align:center;
+}
+.backfill-limit-hint{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:20px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:color-mix(in srgb,#d87567 11%,var(--card));
+  color:#b85f53;
+  font-size:10.5px;
+  line-height:1;
+  font-weight:760;
+  white-space:nowrap;
+}
+.backfill-limit-hint[hidden]{
+  display:none;
+}
+.backfill-stepper>button{
+  justify-self:center;
+}
+:root[data-theme="dark"] .backfill-limit-hint{
+  background:rgba(215,120,109,.10);
+  color:#e39487;
+}
