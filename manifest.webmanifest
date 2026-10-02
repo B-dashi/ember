@@ -1,31 +1,16 @@
 {
   "name": "Ember",
   "short_name": "Ember",
-  "description": "Persoenlicher Rauch-Tracker fuer den iPhone Home-Bildschirm.",
+  "description": "Persönlicher Rauch-Tracker für den iPhone Home-Bildschirm.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f7fd",
-  "theme_color": "#f2f7ff",
+  "background_color": "#f8f3ec",
+  "theme_color": "#f8f3ec",
   "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "app-icon-pwa-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "app-icon-pwa-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "app-icon-maskable-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "app-icon-pwa-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "app-icon-pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "app-icon-maskable-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

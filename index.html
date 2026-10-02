@@ -1,17 +1,15 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#f2f7ff" />
+  <meta name="theme-color" content="#f8f3ec" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ember" />
   <meta name="format-detection" content="telephone=no" />
-
   <title>Ember</title>
-  <meta name="description" content="Persoenlicher Rauch-Tracker fuer iPhone und den Home-Bildschirm." />
-
+  <meta name="description" content="Persönlicher Rauch-Tracker für iPhone und den Home-Bildschirm." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="app-icon-iphone-180x180.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="browser-favicon-32x32.png" />
@@ -19,121 +17,103 @@
 </head>
 <body>
   <main class="app-shell" id="app">
-    <header class="topbar">
-      <div>
-        <h1>Heute</h1>
-        <p class="date-label" id="dateLabel">–</p>
-      </div>
-      <button class="icon-button glass" id="settingsButton" aria-label="Einstellungen oeffnen" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 8.25A3.75 3.75 0 1 0 12 15.75 3.75 3.75 0 0 0 12 8.25Z" />
-          <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.74.74 0 0 0 .18-.95l-1.92-3.32a.74.74 0 0 0-.9-.33l-2.39.96a7.7 7.7 0 0 0-1.63-.95l-.36-2.54A.75.75 0 0 0 13.4 1.7H9.56a.75.75 0 0 0-.74.64l-.36 2.54c-.58.24-1.12.56-1.63.95l-2.39-.96a.74.74 0 0 0-.9.33L1.62 8.53a.74.74 0 0 0 .18.95l2.03 1.58c-.04.31-.07.63-.07.94s.03.63.07.94L1.8 14.52a.74.74 0 0 0-.18.95l1.92 3.32c.19.33.58.46.9.33l2.39-.96c.5.39 1.05.71 1.63.95l.36 2.54c.05.37.36.64.74.64h3.84c.37 0 .68-.27.74-.64l.36-2.54a7.7 7.7 0 0 0 1.63-.95l2.39.96c.34.13.72 0 .9-.33l1.92-3.32a.74.74 0 0 0-.18-.95l-2.02-1.58Z" />
-        </svg>
-      </button>
-    </header>
+    <section class="hero-scene" aria-label="Tagesübersicht">
+      <header class="topbar">
+        <button class="round-button" id="settingsButton" type="button" aria-label="Einstellungen öffnen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 13.2a7.8 7.8 0 0 0 0-2.4l2-1.55-2-3.46-2.35.95a8.1 8.1 0 0 0-2.08-1.2L14.3 3h-4l-.36 2.54c-.75.3-1.44.7-2.08 1.2l-2.35-.95-2 3.46 2 1.55a7.8 7.8 0 0 0 0 2.4l-2 1.55 2 3.46 2.35-.95c.64.5 1.33.9 2.08 1.2L10.3 21h4l.36-2.54c.75-.3 1.44-.7 2.08-1.2l2.35.95 2-3.46-2-1.55Z"/></svg>
+        </button>
 
-    <section class="hero-card" aria-label="Tagesuebersicht">
+        <div class="title-block">
+          <h1>Heute</h1>
+          <p id="dateLabel">–</p>
+        </div>
+
+        <button class="round-button" id="analysisButton" type="button" aria-label="Analyse öffnen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V10M12 19V5M19 19v-7"/></svg>
+        </button>
+      </header>
+
       <div class="progress-wrap">
         <svg class="progress-ring" viewBox="0 0 320 320" role="img" aria-label="Tagesfortschritt">
           <circle class="progress-track" cx="160" cy="160" r="136" pathLength="100" />
           <circle class="progress-value" id="progressCircle" cx="160" cy="160" r="136" pathLength="100" />
         </svg>
-        <div class="progress-content">
-          <div class="count-line">
-            <strong id="todayCount">0</strong>
-            <span>/</span>
-            <span id="limitCount">20</span>
-          </div>
-          <div class="remaining" id="remainingText">20 verbleibend</div>
-          <div class="limit-label">Tageslimit</div>
+        <div class="progress-center">
+          <svg class="cigarette-mark" viewBox="0 0 46 36" aria-hidden="true"><path d="M29 5c5 3 1 7 5 10 3 2 3 5 1 8"/><path d="M34 2c5 4 2 8 6 11"/><path d="M7 26h29v6H7z"/><path class="ember-tip" d="M7 26h5v6H7z"/></svg>
+          <div class="count-line"><strong id="todayCount">0</strong><span>/</span><span id="limitCount">20</span></div>
+          <div class="progress-subtitle">Heute</div>
+          <div class="limit-label" id="remainingText">20 verbleibend</div>
         </div>
       </div>
     </section>
 
-    <button class="add-button" id="addButton" type="button">
-      <span class="plus">+</span>
-      <span>Zigarette</span>
+    <button class="add-button" id="addButton" type="button"><span class="add-plus">+</span><span>Zigarette hinzufügen</span></button>
+
+    <button class="glass-card last-card" id="lastCard" type="button" aria-label="Letzte Zigarette bearbeiten">
+      <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.4 2.1"/></svg></span>
+      <span class="last-copy"><small>Letzte Zigarette</small><strong id="lastTime">–</strong><span id="lastRelative">Noch kein Eintrag</span></span>
+      <span class="chevron" aria-hidden="true">›</span>
     </button>
 
-    <section class="glass info-card" id="lastCard" aria-live="polite">
-      <div class="info-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M12 7v5l3.4 2.1"/><circle cx="12" cy="12" r="8.5"/></svg>
-      </div>
-      <div class="info-copy">
-        <div class="eyebrow">Letzte Zigarette</div>
-        <div class="last-time" id="lastTime">–</div>
-        <div class="muted" id="lastRelative">Noch kein Eintrag</div>
-      </div>
-    </section>
-
-    <section class="glass entries-card">
-      <div class="section-head">
-        <h2>Heute</h2>
-        <span id="entryCountLabel">0 Eintraege</span>
-      </div>
+    <section class="glass-card entries-card">
+      <div class="section-head"><h2>Heute</h2><span id="entryCountLabel">0 Einträge</span></div>
       <div class="entry-list" id="entryList"></div>
-      <div class="empty-state" id="emptyState">
-        <div class="empty-dot"></div>
-        <p>Noch keine Zigarette gespeichert.</p>
-      </div>
+      <div class="empty-state" id="emptyState"><span></span><p>Noch keine Zigarette gespeichert.</p></div>
     </section>
 
-    <div class="bottom-spacer" aria-hidden="true"></div>
+    <div class="bottom-space" aria-hidden="true"></div>
   </main>
 
   <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
 
-  <section class="settings-sheet glass" id="settingsSheet" aria-hidden="true" aria-labelledby="settingsTitle">
-    <div class="sheet-grabber" aria-hidden="true"></div>
-    <div class="sheet-header">
-      <button class="sheet-action" id="closeSettingsButton" type="button">Fertig</button>
-      <h2 id="settingsTitle">Einstellungen</h2>
-      <span class="sheet-action placeholder">Fertig</span>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-label">Tageslimit</div>
-      <div class="stepper-row">
-        <button class="stepper-button" id="limitMinus" type="button" aria-label="Tageslimit verringern">−</button>
-        <div class="limit-value"><strong id="settingsLimitValue">20</strong><span>Zigaretten</span></div>
-        <button class="stepper-button" id="limitPlus" type="button" aria-label="Tageslimit erhoehen">+</button>
+  <section class="bottom-sheet" id="settingsSheet" aria-hidden="true" aria-labelledby="settingsTitle">
+    <div class="sheet-grabber"></div>
+    <div class="sheet-header"><button class="sheet-action ghost" type="button" tabindex="-1">Fertig</button><h2 id="settingsTitle">Einstellungen</h2><button class="sheet-action" id="closeSettingsButton" type="button">Fertig</button></div>
+    <div class="sheet-content">
+      <div class="setting-card">
+        <div><strong>Tageslimit</strong><span>Dein selbst gesetztes Maximum</span></div>
+        <div class="stepper"><button id="limitMinus" type="button" aria-label="Tageslimit verringern">−</button><strong id="settingsLimitValue">20</strong><button id="limitPlus" type="button" aria-label="Tageslimit erhöhen">+</button></div>
       </div>
-    </div>
-
-    <div class="settings-group">
-      <div class="settings-label">Akzentfarbe</div>
-      <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="Akzentfarbe">
-        <button class="theme-swatch" data-theme="blue" style="--swatch:#1687ff" type="button" aria-label="Blau"><span></span></button>
-        <button class="theme-swatch" data-theme="teal" style="--swatch:#18b9b2" type="button" aria-label="Tuerkis"><span></span></button>
-        <button class="theme-swatch" data-theme="green" style="--swatch:#32b46f" type="button" aria-label="Gruen"><span></span></button>
-        <button class="theme-swatch" data-theme="violet" style="--swatch:#7557f5" type="button" aria-label="Violett"><span></span></button>
-        <button class="theme-swatch" data-theme="orange" style="--swatch:#e47d3c" type="button" aria-label="Orange"><span></span></button>
-        <button class="theme-swatch" data-theme="graphite" style="--swatch:#566170" type="button" aria-label="Graphit"><span></span></button>
+      <div class="setting-block">
+        <h3>Design</h3>
+        <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="Design auswählen">
+          <button class="theme-option" data-theme="blue" type="button"><span class="theme-preview blue"></span><span>Blau</span><span class="theme-check">✓</span></button>
+          <button class="theme-option" data-theme="terracotta" type="button"><span class="theme-preview terracotta"></span><span>Terrakotta</span><span class="theme-check">✓</span></button>
+          <button class="theme-option" data-theme="green" type="button"><span class="theme-preview green"></span><span>Grün</span><span class="theme-check">✓</span></button>
+          <button class="theme-option" data-theme="violet" type="button"><span class="theme-preview violet"></span><span>Violett</span><span class="theme-check">✓</span></button>
+        </div>
       </div>
+      <p class="storage-note">Deine Einträge und Einstellungen werden ausschließlich lokal auf diesem Gerät gespeichert.</p>
     </div>
-
-    <div class="settings-note">Deine Eintraege und Einstellungen bleiben lokal auf diesem Geraet gespeichert.</div>
   </section>
 
-  <section class="edit-sheet glass" id="editSheet" aria-hidden="true" aria-labelledby="editTitle">
-    <div class="sheet-grabber" aria-hidden="true"></div>
-    <div class="sheet-header">
-      <button class="sheet-action" id="cancelEditButton" type="button">Abbrechen</button>
-      <h2 id="editTitle">Eintrag</h2>
-      <button class="sheet-action" id="saveEditButton" type="button">Sichern</button>
+  <section class="bottom-sheet" id="analysisSheet" aria-hidden="true" aria-labelledby="analysisTitle">
+    <div class="sheet-grabber"></div>
+    <div class="sheet-header"><button class="sheet-action ghost" type="button" tabindex="-1">Fertig</button><h2 id="analysisTitle">Analyse</h2><button class="sheet-action" id="closeAnalysisButton" type="button">Fertig</button></div>
+    <div class="sheet-content">
+      <div class="stats-grid">
+        <div class="stat-card"><span>Heute</span><strong id="analysisToday">0</strong><small>Zigaretten</small></div>
+        <div class="stat-card"><span>Verbleibend</span><strong id="analysisRemaining">20</strong><small>bis zum Limit</small></div>
+        <div class="stat-card"><span>Ø Abstand</span><strong id="analysisGap">–</strong><small>heute</small></div>
+        <div class="stat-card"><span>Letzte</span><strong id="analysisLast">–</strong><small>Uhrzeit</small></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><strong>Letzte 7 Tage</strong><span>Zigaretten pro Tag</span></div>
+        <div class="week-chart" id="weekChart"></div>
+      </div>
     </div>
-    <div class="settings-group edit-group">
-      <label for="editTime">Uhrzeit</label>
-      <input id="editTime" type="time" />
-    </div>
-    <button class="danger-button" id="deleteEntryButton" type="button">Eintrag loeschen</button>
   </section>
 
-  <div class="toast glass" id="toast" role="status" aria-live="polite" aria-hidden="true">
-    <span id="toastText">Gespeichert</span>
-    <button id="undoButton" type="button">Rueckgaengig</button>
-  </div>
+  <section class="bottom-sheet compact-sheet" id="editSheet" aria-hidden="true" aria-labelledby="editTitle">
+    <div class="sheet-grabber"></div>
+    <div class="sheet-header"><button class="sheet-action" id="cancelEditButton" type="button">Abbrechen</button><h2 id="editTitle">Eintrag</h2><button class="sheet-action" id="saveEditButton" type="button">Sichern</button></div>
+    <div class="sheet-content">
+      <label class="time-field" for="editTime"><span>Uhrzeit</span><input id="editTime" type="time" /></label>
+      <button class="danger-button" id="deleteEntryButton" type="button">Eintrag löschen</button>
+    </div>
+  </section>
 
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-hidden="true"><span id="toastText">Gespeichert</span><button id="undoButton" type="button">Rückgängig</button></div>
   <script src="app.js" defer></script>
 </body>
 </html>
