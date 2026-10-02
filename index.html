@@ -40,11 +40,6 @@
             <div class="count-line"><strong id="todayCount">0</strong><span>/</span><span id="limitCount">20</span></div>
             <div class="progress-subtitle">Heute</div>
             <div class="limit-label" id="remainingText">Tageslimit 20</div>
-            <div class="pause-live" id="pauseLive" data-state="empty">
-              <div class="pause-live-main"><span>Pause</span><strong id="pauseStatus">–</strong></div>
-              <div class="pause-live-hint" id="pauseHint">Pause-Ziel 50 Min.</div>
-              <div class="pause-live-track"><span id="pauseHomeFill"></span></div>
-            </div>
           </div>
         </div>
       </section>
@@ -52,15 +47,20 @@
       <section class="home-content">
         <button class="add-button" id="addButton" type="button"><span class="add-plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="add-divider" aria-hidden="true"></span><span>Zigarette hinzufügen</span></button>
 
-        <button class="info-card" id="lastCard" type="button" aria-label="Letzte Zigarette bearbeiten">
+        <button class="info-card pause-home-card" id="pauseCardHome" type="button" aria-label="Pause-Ziel öffnen">
           <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.4 2.1"/></svg></span>
-          <span class="info-copy"><small>Letzte Zigarette</small><strong id="lastTime">–</strong><span id="lastRelative">Noch kein Eintrag</span></span>
+          <span class="pause-card-copy">
+            <span class="pause-card-head"><small>Pause-Ziel</small><span id="homePauseGoal">50 Min. Ziel</span></span>
+            <strong id="homePauseValue">–</strong>
+            <span class="pause-card-hint" id="homePauseHint">Noch kein Eintrag</span>
+            <span class="pause-home-track"><span id="homePauseFill"></span></span>
+          </span>
           <span class="chevron">›</span>
         </button>
 
-        <button class="info-card" id="comparisonCard" type="button" aria-label="Analyse öffnen">
-          <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M5 17l4-4 3 2 6-7"/><path d="M15 8h3v3"/></svg></span>
-          <span class="info-copy"><small>Heute im Vergleich</small><strong id="comparisonCount">0 Zigaretten</strong><span id="comparisonText">Gleich wie gestern um diese Uhrzeit</span></span>
+        <button class="info-card" id="lastCard" type="button" aria-label="Letzte Zigarette bearbeiten">
+          <span class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.4 2.1"/></svg></span>
+          <span class="info-copy"><small>Letzte Zigarette</small><strong id="lastTime">–</strong><span id="lastRelative">Noch kein Eintrag</span></span>
           <span class="chevron">›</span>
         </button>
 
@@ -126,6 +126,12 @@
         <div class="analysis-overview">
           <span>Heute bisher</span>
           <strong id="analysisOverview">–</strong>
+        </div>
+
+        <div class="analysis-section-card comparison-analysis-card">
+          <div class="chart-title"><strong>Heute im Vergleich</strong><span>Vergleich mit gestern um diese Uhrzeit</span></div>
+          <div class="comparison-analysis-main" id="analysisComparisonCount">–</div>
+          <div class="comparison-analysis-sub" id="analysisComparisonText">–</div>
         </div>
 
         <div class="analysis-section-card">
