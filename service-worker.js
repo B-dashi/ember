@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v21-iphone-polish";
+const CACHE = "ember-violet-v22-statusbar-blend";
 const SHELL = [
   "./",
   "./index.html",
