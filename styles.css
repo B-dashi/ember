@@ -3308,3 +3308,95 @@ body{
   background:rgba(215,120,109,.10);
   color:#e39487;
 }
+
+/* Ember v40: editable steppers, press-repeat, ring logo, Midnight artwork */
+.ember-logo-mark{
+  width:30px;
+  height:34px;
+  margin-bottom:2px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:2.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:.96;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.12));
+}
+.progress-wrap.just-added .ember-logo-mark{
+  animation:ember-mark-lift .58s ease-out;
+}
+.count-line-button{
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+}
+.count-line-button:active{
+  transform:scale(.985);
+}
+.count-line-button #limitCount{
+  font-size:31px;
+  color:var(--hero-ink);
+  font-weight:500;
+}
+.editable-stepper{
+  grid-template-columns:58px minmax(0,1fr) 58px;
+}
+.stepper-value-input{
+  width:100%;
+  min-width:0;
+  height:58px;
+  border:0;
+  border-radius:16px;
+  background:transparent;
+  color:var(--ink);
+  text-align:center;
+  font-size:40px!important;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.04em;
+  outline:none;
+  -moz-appearance:textfield;
+}
+.stepper-value-input::-webkit-outer-spin-button,
+.stepper-value-input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.stepper-value-input:focus{
+  background:var(--accent-soft);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+.stepper-value-with-unit{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:4px;
+}
+.stepper-value-with-unit .stepper-value-input{
+  width:92px;
+}
+.stepper-value-with-unit small{
+  color:var(--muted);
+  font-size:15px;
+  font-weight:650;
+}
+.limit-stepper button{
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+}
+.limit-stepper button:active{
+  transform:scale(.94);
+}
+:root[data-theme="dark"]{
+  --hero-image:url("theme-background-midnight.svg");
+  --hero-overlay:linear-gradient(180deg,rgba(3,5,14,.08),rgba(10,11,13,.18));
+  --system-top:#080a13;
+}
+:root[data-theme="dark"] .ember-logo-mark{
+  stroke:#fff7e6;
+}
+:root[data-theme="dark"] .stepper-value-input:focus{
+  background:rgba(199,154,53,.10);
+}
