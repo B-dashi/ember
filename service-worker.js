@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v29-import-limit-suggestions";
+const CACHE = "ember-violet-v30-insights-feedback";
 const SHELL = [
   "./",
   "./index.html",
