@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v34-three-page-pager";
+const CACHE = "ember-violet-v35-native-pager";
 const SHELL = [
   "./",
   "./index.html",
