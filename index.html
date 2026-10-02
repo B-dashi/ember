@@ -38,7 +38,7 @@
           </svg>
           <div class="progress-center">
             <svg class="cigarette-mark" viewBox="0 0 46 36" aria-hidden="true"><path d="M29 5c5 3 1 7 5 10 3 2 3 5 1 8"/><path d="M34 2c5 4 2 8 6 11"/><path d="M7 26h29v6H7z"/><path class="ember-tip" d="M7 26h5v6H7z"/></svg>
-            <div class="count-line"><strong id="todayCount">0</strong><span>/</span><span id="limitCount">20</span></div>
+            <div class="count-line"><strong id="todayCount">0</strong><span>/</span><button class="ring-limit-button" id="limitCount" type="button" aria-label="Tageslimit ändern">20</button></div>
             <div class="limit-label" id="remainingText">Tageslimit 20</div>
 
             <button class="ring-pause" id="pauseCardHome" type="button" aria-label="Pause einstellen">
@@ -269,7 +269,11 @@
 
   <section class="modal-sheet" id="limitSheet" aria-hidden="true">
     <div class="sheet-handle"></div><div class="sheet-title">Tägliches Limit</div>
-    <div class="limit-stepper"><button id="limitMinus" type="button">−</button><strong id="settingsLimitValue">20</strong><button id="limitPlus" type="button">+</button></div>
+    <div class="limit-stepper editable-stepper"><button id="limitMinus" type="button">−</button><input id="settingsLimitValue" class="stepper-value-input" type="number" inputmode="numeric" min="1" max="99" step="1" value="20" aria-label="Tageslimit"><button id="limitPlus" type="button">+</button></div>
+    <label class="toggle-row smart-toggle-row">
+      <span><strong>Limit-Vorschläge</strong><small>Ember schlägt eine Reduktion vor, wenn dein Limit mehrere Tage stabil passt.</small></span>
+      <input id="smartLimitToggle" type="checkbox" checked><i></i>
+    </label>
     <div class="smart-suggestion limit-suggestion" id="smartLimitSuggestion" hidden>
       <span>Vorschlag</span>
       <strong id="smartLimitText">Seit 5 Tagen im Limit.</strong>
@@ -285,7 +289,7 @@
   <section class="modal-sheet" id="pauseSheet" aria-hidden="true">
     <div class="sheet-handle"></div><div class="sheet-title">Pause</div>
     <p class="sheet-helper">Stelle ein, wie lange deine Pause zwischen zwei Einträgen dauern soll.</p>
-    <div class="limit-stepper"><button id="pauseMinus" type="button" aria-label="Pause verkürzen">−</button><strong><span id="settingsPauseValue">50</span><small> Min.</small></strong><button id="pausePlus" type="button" aria-label="Pause verlängern">+</button></div>
+    <div class="limit-stepper editable-stepper"><button id="pauseMinus" type="button" aria-label="Pause verkürzen">−</button><div class="stepper-value-with-unit"><input id="settingsPauseValue" class="stepper-value-input" type="number" inputmode="numeric" min="5" max="240" step="5" value="50" aria-label="Pausenziel"><small>Min.</small></div><button id="pausePlus" type="button" aria-label="Pause verlängern">+</button></div>
 
     <label class="toggle-row smart-toggle-row">
       <span><strong>Sanfte Vorschläge</strong><small>Ember schlägt nur vor und ändert nie automatisch.</small></span>
