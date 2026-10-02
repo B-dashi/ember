@@ -1,4 +1,4 @@
-const CACHE = "ember-violet-v35-native-pager";
+const CACHE = "ember-violet-v36-ios-transform-pager";
 const SHELL = [
   "./",
   "./index.html",
