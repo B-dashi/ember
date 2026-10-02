@@ -2,30 +2,43 @@
   "use strict";
   const STORAGE_ENTRIES="ember.v1.entries";
   const STORAGE_SETTINGS="ember.v1.settings";
-  const THEMES={violet:{name:"Violett",themeColor:"#f6f4ff"},blue:{name:"Blau",themeColor:"#f3f8fe"},terracotta:{name:"Terrakotta",themeColor:"#fbf5ef"},green:{name:"Grün",themeColor:"#f4f7f1"},dark:{name:"Dunkel",themeColor:"#0a0b0d"}};
+  const STORAGE_MANUAL_COUNTS="ember.v1.manualDailyCounts";
+  const THEMES={violet:{name:"Dusk",themeColor:"#f6f4ff"},blue:{name:"Blue Hour",themeColor:"#f3f8fe"},terracotta:{name:"Ember Clay",themeColor:"#fbf5ef"},green:{name:"Sage",themeColor:"#f4f7f1"},dark:{name:"Midnight",themeColor:"#0a0b0d"}};
   const THEME_MIGRATION={orange:"terracotta",teal:"blue",graphite:"violet"};
   const $=id=>document.getElementById(id);
   const els={
     homeView:$("homeView"),settingsView:$("settingsView"),analysisView:$("analysisView"),
     dateLabel:$("dateLabel"),todayCount:$("todayCount"),limitCount:$("limitCount"),remainingText:$("remainingText"),pauseCardHome:$("pauseCardHome"),homePauseValue:$("homePauseValue"),homePauseHint:$("homePauseHint"),pauseDialValue:$("pauseDialValue"),progressCircle:$("progressCircle"),progressWrap:$("progressWrap"),
-    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySheetTitle:$("daySheetTitle"),todaySheetSummary:$("todaySheetSummary"),dayDetailCount:$("dayDetailCount"),dayDetailFirst:$("dayDetailFirst"),dayDetailAverage:$("dayDetailAverage"),dayDetailBest:$("dayDetailBest"),dayDetailTimeline:$("dayDetailTimeline"),dayDetailStatus:$("dayDetailStatus"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
+    addButton:$("addButton"),lastCard:$("lastCard"),lastTime:$("lastTime"),lastRelative:$("lastRelative"),analysisComparisonCount:$("analysisComparisonCount"),analysisComparisonText:$("analysisComparisonText"),entryCountLabel:$("entryCountLabel"),daySummaryCard:$("daySummaryCard"),dayFirstEntry:$("dayFirstEntry"),dayFirstCompare:$("dayFirstCompare"),dayBestPause:$("dayBestPause"),dayMiniTimeline:$("dayMiniTimeline"),daySheetTitle:$("daySheetTitle"),todaySheetSummary:$("todaySheetSummary"),dayDetailCount:$("dayDetailCount"),dayDetailFirst:$("dayDetailFirst"),dayDetailAverage:$("dayDetailAverage"),dayDetailBest:$("dayDetailBest"),dayDetailTimeline:$("dayDetailTimeline"),dayDetailStatus:$("dayDetailStatus"),dayBackfillButton:$("dayBackfillButton"),todaySheetList:$("todaySheetList"),closeTodaySheet:$("closeTodaySheet"),
     analysisButton:$("analysisButton"),settingsButton:$("settingsButton"),settingsBackButton:$("settingsBackButton"),analysisBackButton:$("analysisBackButton"),
-    limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
-    modalBackdrop:$("modalBackdrop"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
+    limitTile:$("limitTile"),pauseTile:$("pauseTile"),designTile:$("designTile"),backfillTile:$("backfillTile"),dataTile:$("dataTile"),aboutTile:$("aboutTile"),limitTileValue:$("limitTileValue"),pauseTileValue:$("pauseTileValue"),designTileValue:$("designTileValue"),
+    modalBackdrop:$("modalBackdrop"),pauseConfirmSheet:$("pauseConfirmSheet"),backfillSheet:$("backfillSheet"),limitSheet:$("limitSheet"),pauseSheet:$("pauseSheet"),designSheet:$("designSheet"),dataSheet:$("dataSheet"),aboutSheet:$("aboutSheet"),todaySheet:$("todaySheet"),editSheet:$("editSheet"),
     limitMinus:$("limitMinus"),limitPlus:$("limitPlus"),settingsLimitValue:$("settingsLimitValue"),smartLimitSuggestion:$("smartLimitSuggestion"),smartLimitText:$("smartLimitText"),smartLimitHint:$("smartLimitHint"),smartLimitLater:$("smartLimitLater"),smartLimitApply:$("smartLimitApply"),closeLimitSheet:$("closeLimitSheet"),
-    pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
-    exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
+    pauseConfirmTime:$("pauseConfirmTime"),pauseConfirmSubtitle:$("pauseConfirmSubtitle"),pauseConfirmFill:$("pauseConfirmFill"),pauseWaitButton:$("pauseWaitButton"),pauseAddAnywayButton:$("pauseAddAnywayButton"),pauseMinus:$("pauseMinus"),pausePlus:$("pausePlus"),settingsPauseValue:$("settingsPauseValue"),smartPauseToggle:$("smartPauseToggle"),smartPauseSuggestion:$("smartPauseSuggestion"),smartPauseText:$("smartPauseText"),smartPauseLater:$("smartPauseLater"),smartPauseApply:$("smartPauseApply"),closePauseSheet:$("closePauseSheet"),themeList:$("themeList"),closeDesignSheet:$("closeDesignSheet"),
+    backfillDate:$("backfillDate"),backfillCount:$("backfillCount"),backfillMinus:$("backfillMinus"),backfillPlus:$("backfillPlus"),saveBackfillButton:$("saveBackfillButton"),deleteBackfillButton:$("deleteBackfillButton"),closeBackfillSheet:$("closeBackfillSheet"),exportDataButton:$("exportDataButton"),importDataButton:$("importDataButton"),importDataInput:$("importDataInput"),resetDataButton:$("resetDataButton"),closeDataSheet:$("closeDataSheet"),closeAboutSheet:$("closeAboutSheet"),
     editTime:$("editTime"),saveEditButton:$("saveEditButton"),deleteEntryButton:$("deleteEntryButton"),
-    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisRemainingCard:$("analysisRemainingCard"),analysisRemainingTitle:$("analysisRemainingTitle"),analysisRemainingLabel:$("analysisRemainingLabel"),summaryWeekButton:$("summaryWeekButton"),summaryMonthButton:$("summaryMonthButton"),periodSummaryRange:$("periodSummaryRange"),periodSummaryLabel:$("periodSummaryLabel"),periodSummaryTotal:$("periodSummaryTotal"),periodSummaryAverage:$("periodSummaryAverage"),periodSummaryWithinLimit:$("periodSummaryWithinLimit"),periodSummaryBestPause:$("periodSummaryBestPause"),periodSummaryNote:$("periodSummaryNote"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),daypartMorning:$("daypartMorning"),daypartNoon:$("daypartNoon"),daypartAfternoon:$("daypartAfternoon"),daypartEvening:$("daypartEvening"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
+    analysisToday:$("analysisToday"),analysisRemaining:$("analysisRemaining"),analysisRemainingCard:$("analysisRemainingCard"),analysisRemainingTitle:$("analysisRemainingTitle"),analysisRemainingLabel:$("analysisRemainingLabel"),summaryWeekButton:$("summaryWeekButton"),summaryMonthButton:$("summaryMonthButton"),periodSummaryRange:$("periodSummaryRange"),periodSummaryLabel:$("periodSummaryLabel"),periodSummaryTotal:$("periodSummaryTotal"),periodSummaryAverage:$("periodSummaryAverage"),periodSummaryWithinLimit:$("periodSummaryWithinLimit"),periodSummaryBestPause:$("periodSummaryBestPause"),analysisPauseGoal:$("analysisPauseGoal"),analysisCurrentPause:$("analysisCurrentPause"),analysisCurrentPauseText:$("analysisCurrentPauseText"),currentPauseFill:$("currentPauseFill"),analysisPauseHit:$("analysisPauseHit"),analysisPauseCaption:$("analysisPauseCaption"),analysisPauseAverage:$("analysisPauseAverage"),timeHeatmap:$("timeHeatmap"),heatmapPeak:$("heatmapPeak"),daypartMorning:$("daypartMorning"),daypartNoon:$("daypartNoon"),daypartAfternoon:$("daypartAfternoon"),daypartEvening:$("daypartEvening"),weekOverview:$("weekOverview"),weekRangeTitle:$("weekRangeTitle"),weekPrev:$("weekPrev"),weekNext:$("weekNext"),monthCalendar:$("monthCalendar"),monthCalendarTitle:$("monthCalendarTitle"),monthTotal:$("monthTotal"),monthPrev:$("monthPrev"),monthNext:$("monthNext"),
     toast:$("toast"),toastText:$("toastText"),undoButton:$("undoButton")
   };
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-  let entries=loadEntries(), settings=loadSettings(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week";
+  let entries=loadEntries(), settings=loadSettings(), manualDailyCounts=loadManualCounts(), lastAddedId=null, editingId=null, toastTimer=null, addAnimationTimer=null, analysisWeekOffset=0, analysisMonthOffset=0, analysisSummaryMode="week", activeDaySheetDate=null, backfillCountValue=0;
   const dayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
   const formatTime=date=>new Intl.DateTimeFormat("de-AT",{hour:"2-digit",minute:"2-digit"}).format(date);
   function formatDate(date=new Date()){const t=new Intl.DateTimeFormat("de-AT",{weekday:"long",day:"numeric",month:"long"}).format(date);return t.charAt(0).toUpperCase()+t.slice(1)}
   function relativeTime(date){const m=Math.max(0,Math.floor((Date.now()-date.getTime())/60000));if(m<1)return"gerade eben";if(m===1)return"vor 1 Min.";if(m<60)return`vor ${m} Min.`;const h=Math.floor(m/60);if(h===1)return"vor 1 Std.";if(h<24)return`vor ${h} Std.`;return"früher"}
   function loadEntries(){try{const raw=JSON.parse(localStorage.getItem(STORAGE_ENTRIES)||"[]");return Array.isArray(raw)?raw.filter(x=>x&&typeof x.id==="string"&&typeof x.time==="string"&&!Number.isNaN(Date.parse(x.time))).sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)):[]}catch{return[]}}
+  function sanitizeManualCounts(raw){
+    if(!raw||typeof raw!=="object"||Array.isArray(raw))return{};
+    const clean={};
+    Object.entries(raw).forEach(([key,value])=>{
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return;
+      const count=Number(value);
+      if(Number.isFinite(count)&&count>=0)clean[key]=clamp(Math.round(count),0,99);
+    });
+    return clean;
+  }
+  function loadManualCounts(){try{return sanitizeManualCounts(JSON.parse(localStorage.getItem(STORAGE_MANUAL_COUNTS)||"{}"))}catch{return{}}}
+
   function normalizeSettings(raw={}){
     const migrated=THEME_MIGRATION[raw.theme]||raw.theme,userSet=Boolean(raw.smartPauseUserSet);
     const num=value=>Number.isFinite(Number(value))?Math.max(0,Number(value)):0;
@@ -44,7 +57,15 @@
   function loadSettings(){try{return normalizeSettings(JSON.parse(localStorage.getItem(STORAGE_SETTINGS)||"{}"))}catch{return normalizeSettings()}}
   const saveEntries=()=>localStorage.setItem(STORAGE_ENTRIES,JSON.stringify(entries));
   const saveSettings=()=>localStorage.setItem(STORAGE_SETTINGS,JSON.stringify(settings));
+  const saveManualCounts=()=>localStorage.setItem(STORAGE_MANUAL_COUNTS,JSON.stringify(manualDailyCounts));
   function entriesForDay(start){const d=new Date(start),from=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),next=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();return entries.filter(item=>{const t=Date.parse(item.time);return t>=from&&t<next})}
+  function manualCountForDay(date){const value=manualDailyCounts[localDateKey(new Date(date))];return Number.isFinite(Number(value))?Number(value):null}
+  function effectiveDayCount(date){
+    const manual=manualCountForDay(date);
+    return manual!=null?manual:entriesForDay(dayStart(new Date(date))).length;
+  }
+  function hasDayCount(date){return manualCountForDay(date)!=null||entriesForDay(dayStart(new Date(date))).length>0}
+
   const todaysEntries=()=>entriesForDay(dayStart());
   function gapMinutes(list){const gaps=[];for(let i=1;i<list.length;i++){const mins=Math.round((Date.parse(list[i].time)-Date.parse(list[i-1].time))/60000);if(mins>=0)gaps.push(mins)}return gaps}
   function averageFromGaps(gaps){if(!gaps.length)return null;return Math.round(gaps.reduce((sum,value)=>sum+value,0)/gaps.length)}
@@ -175,9 +196,6 @@
     els.periodSummaryAverage.textContent=stats.average==null?"–":stats.average.toLocaleString("de-AT",{minimumFractionDigits:stats.average%1?1:0,maximumFractionDigits:1});
     els.periodSummaryWithinLimit.textContent=stats.trackedDays?`${stats.withinLimit}/${stats.trackedDays}`:"–";
     els.periodSummaryBestPause.textContent=formatGap(stats.bestPause);
-    els.periodSummaryNote.textContent=stats.trackedDays
-      ?`${stats.trackedDays} ${stats.trackedDays===1?"Trackingtag":"Trackingtage"} erfasst · Tage ohne Einträge zählen nicht als 0.`
-      :"Noch keine Trackingtage in diesem Zeitraum.";
   }
   function renderWeekOverview(){
     const now=new Date(),anchor=addDays(now,analysisWeekOffset*7),monday=startOfWeek(anchor),sunday=addDays(monday,6);
